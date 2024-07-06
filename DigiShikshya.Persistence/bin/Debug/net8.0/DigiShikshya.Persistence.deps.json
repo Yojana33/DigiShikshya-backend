@@ -1,0 +1,50 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v8.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v8.0": {
+      "DigiShikshya.Persistence/1.0.0": {
+        "dependencies": {
+          "DigiShikshya.Application": "1.0.0",
+          "DigiShikshya.Domain": "1.0.0"
+        },
+        "runtime": {
+          "DigiShikshya.Persistence.dll": {}
+        }
+      },
+      "DigiShikshya.Application/1.0.0": {
+        "dependencies": {
+          "DigiShikshya.Domain": "1.0.0"
+        },
+        "runtime": {
+          "DigiShikshya.Application.dll": {}
+        }
+      },
+      "DigiShikshya.Domain/1.0.0": {
+        "runtime": {
+          "DigiShikshya.Domain.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "DigiShikshya.Persistence/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "DigiShikshya.Application/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "DigiShikshya.Domain/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

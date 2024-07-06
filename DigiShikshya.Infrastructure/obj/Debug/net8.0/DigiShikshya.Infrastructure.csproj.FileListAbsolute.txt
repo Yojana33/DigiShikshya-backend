@@ -1,0 +1,17 @@
+D:\DigiShikshya\DigiShikshya.Infrastructure\bin\Debug\net8.0\DigiShikshya.Infrastructure.deps.json
+D:\DigiShikshya\DigiShikshya.Infrastructure\bin\Debug\net8.0\DigiShikshya.Infrastructure.dll
+D:\DigiShikshya\DigiShikshya.Infrastructure\bin\Debug\net8.0\DigiShikshya.Infrastructure.pdb
+D:\DigiShikshya\DigiShikshya.Infrastructure\bin\Debug\net8.0\DigiShikshya.Application.dll
+D:\DigiShikshya\DigiShikshya.Infrastructure\bin\Debug\net8.0\DigiShikshya.Domain.dll
+D:\DigiShikshya\DigiShikshya.Infrastructure\bin\Debug\net8.0\DigiShikshya.Domain.pdb
+D:\DigiShikshya\DigiShikshya.Infrastructure\bin\Debug\net8.0\DigiShikshya.Application.pdb
+D:\DigiShikshya\DigiShikshya.Infrastructure\obj\Debug\net8.0\DigiShikshya.Infrastructure.csproj.AssemblyReference.cache
+D:\DigiShikshya\DigiShikshya.Infrastructure\obj\Debug\net8.0\DigiShikshya.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+D:\DigiShikshya\DigiShikshya.Infrastructure\obj\Debug\net8.0\DigiShikshya.Infrastructure.AssemblyInfoInputs.cache
+D:\DigiShikshya\DigiShikshya.Infrastructure\obj\Debug\net8.0\DigiShikshya.Infrastructure.AssemblyInfo.cs
+D:\DigiShikshya\DigiShikshya.Infrastructure\obj\Debug\net8.0\DigiShikshya.Infrastructure.csproj.CoreCompileInputs.cache
+D:\DigiShikshya\DigiShikshya.Infrastructure\obj\Debug\net8.0\DigiShik.6F687822.Up2Date
+D:\DigiShikshya\DigiShikshya.Infrastructure\obj\Debug\net8.0\DigiShikshya.Infrastructure.dll
+D:\DigiShikshya\DigiShikshya.Infrastructure\obj\Debug\net8.0\refint\DigiShikshya.Infrastructure.dll
+D:\DigiShikshya\DigiShikshya.Infrastructure\obj\Debug\net8.0\DigiShikshya.Infrastructure.pdb
+D:\DigiShikshya\DigiShikshya.Infrastructure\obj\Debug\net8.0\ref\DigiShikshya.Infrastructure.dll

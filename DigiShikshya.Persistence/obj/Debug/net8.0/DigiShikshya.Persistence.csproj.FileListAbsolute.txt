@@ -1,0 +1,17 @@
+D:\DigiShikshya\DigiShikshya.Persistence\bin\Debug\net8.0\DigiShikshya.Persistence.deps.json
+D:\DigiShikshya\DigiShikshya.Persistence\bin\Debug\net8.0\DigiShikshya.Persistence.dll
+D:\DigiShikshya\DigiShikshya.Persistence\bin\Debug\net8.0\DigiShikshya.Persistence.pdb
+D:\DigiShikshya\DigiShikshya.Persistence\bin\Debug\net8.0\DigiShikshya.Application.dll
+D:\DigiShikshya\DigiShikshya.Persistence\bin\Debug\net8.0\DigiShikshya.Domain.dll
+D:\DigiShikshya\DigiShikshya.Persistence\bin\Debug\net8.0\DigiShikshya.Domain.pdb
+D:\DigiShikshya\DigiShikshya.Persistence\bin\Debug\net8.0\DigiShikshya.Application.pdb
+D:\DigiShikshya\DigiShikshya.Persistence\obj\Debug\net8.0\DigiShikshya.Persistence.csproj.AssemblyReference.cache
+D:\DigiShikshya\DigiShikshya.Persistence\obj\Debug\net8.0\DigiShikshya.Persistence.GeneratedMSBuildEditorConfig.editorconfig
+D:\DigiShikshya\DigiShikshya.Persistence\obj\Debug\net8.0\DigiShikshya.Persistence.AssemblyInfoInputs.cache
+D:\DigiShikshya\DigiShikshya.Persistence\obj\Debug\net8.0\DigiShikshya.Persistence.AssemblyInfo.cs
+D:\DigiShikshya\DigiShikshya.Persistence\obj\Debug\net8.0\DigiShikshya.Persistence.csproj.CoreCompileInputs.cache
+D:\DigiShikshya\DigiShikshya.Persistence\obj\Debug\net8.0\DigiShik.DD57B048.Up2Date
+D:\DigiShikshya\DigiShikshya.Persistence\obj\Debug\net8.0\DigiShikshya.Persistence.dll
+D:\DigiShikshya\DigiShikshya.Persistence\obj\Debug\net8.0\refint\DigiShikshya.Persistence.dll
+D:\DigiShikshya\DigiShikshya.Persistence\obj\Debug\net8.0\DigiShikshya.Persistence.pdb
+D:\DigiShikshya\DigiShikshya.Persistence\obj\Debug\net8.0\ref\DigiShikshya.Persistence.dll
