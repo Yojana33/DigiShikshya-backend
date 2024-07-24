@@ -8,6 +8,10 @@
 
     <ItemGroup>
     <ProjectReference Include="..\DigiShikshya.Application\DigiShikshya.Application.csproj" />
+    <ProjectReference Include="..\DigiShikshya.Persistence\DigiShikshya.Persistence.csproj" />
+    <ProjectReference Include="..\DigiShikshya.Domain\DigiShikshya.Domain.csproj" />
+
+
   </ItemGroup>
 
   <ItemGroup>
