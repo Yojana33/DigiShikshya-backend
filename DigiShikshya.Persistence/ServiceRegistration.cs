@@ -14,9 +14,8 @@ public static class ServiceRegistration
 
 
         // Register repositories
-        
-        // services.AddScoped<IUserRepository, UserRepository>();
-        // Register other repositories and services here
+
+        services.AddScoped<ICourseRepository, CourseRepository>();
     }
 }
 
