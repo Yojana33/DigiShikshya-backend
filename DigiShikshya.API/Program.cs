@@ -1,18 +1,28 @@
+using System.Data;
 using DbUp;
+using Npgsql;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configuration section
+// --------------------
+// Configuration Section
+// --------------------
 var configuration = builder.Configuration;
 var connectionString = configuration.GetConnectionString("PostgreSQL");
 
-// Database migration section
+// Register NpgsqlConnection as a scoped service
+builder.Services.AddScoped<IDbConnection>(x => new NpgsqlConnection(connectionString));
+
+// --------------------
+// Database Migration Section
+// --------------------
 EnsureDatabase.For.PostgresqlDatabase(connectionString);
 
 var upgrader = DeployChanges.To
-    .PostgresqlDatabase(connectionString) // Specify the connection string for the PostgreSQL database
-    .WithScriptsFromFileSystem("../DigiShikshya.Persistence/Migration") // Specify the folder containing the migration scripts
-    .LogToConsole() // Log the migration progress to the console
+    .PostgresqlDatabase(connectionString) // Connection string for the PostgreSQL database
+    .WithScriptsFromFileSystem("../DigiShikshya.Persistence/Migration") // Folder with migration scripts
+    .LogToConsole() // Log migration progress to console
     .Build(); // Build the upgrader object
 
 var result = upgrader.PerformUpgrade();
@@ -22,17 +32,21 @@ if (!result.Successful)
     Console.ForegroundColor = ConsoleColor.Red;
     Console.WriteLine(result.Error);
     Console.ResetColor();
-    Environment.Exit(1); // Exit the application if the migration fails
+    Environment.Exit(1); // Exit if migration fails
+}
+else
+{
+    Console.ForegroundColor = ConsoleColor.Green;
+    Console.WriteLine("Database migration successful!");
+    Console.ResetColor();
 }
 
-Console.ForegroundColor = ConsoleColor.Green;
-Console.WriteLine("Success!");
-Console.ResetColor();
-
-// Application setup section
+// --------------------
+// Application Setup Section
+// --------------------
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
