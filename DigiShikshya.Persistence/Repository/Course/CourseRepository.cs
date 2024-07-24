@@ -16,9 +16,19 @@ public class CourseRepository(IDbConnection _dbConnection) : ICourseRepository
         throw new NotImplementedException();
     }
 
-    public Task<List<Course>> GetAllCourses()
+    public async Task<PaginatedResult<Course>> GetAllCourses(CourseListQuery request)
     {
-        throw new NotImplementedException();
+        var totalCount = await _dbConnection.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM course");
+        var query = "SELECT * FROM course ORDER BY created_at DESC LIMIT @PageSize OFFSET @PageSize * (@Page - 1)";
+        var result = await _dbConnection.QueryAsync<Course>(query, request);
+        return new PaginatedResult<Course>
+        {
+            Items = result.ToList(),
+            Page = request.Page,
+            PageSize = request.PageSize,
+            TotalCount = totalCount,
+            TotalPages = (int)Math.Ceiling(totalCount / (double)request.PageSize)
+        };
     }
 
     public Task<Course> GetCourseById(Guid id)
