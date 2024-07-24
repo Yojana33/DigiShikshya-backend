@@ -11,9 +11,12 @@ public class CourseRepository(IDbConnection _dbConnection) : ICourseRepository
         return result;
     }
 
-    public Task<bool> DeleteCourse(Guid id)
+    public async Task<bool> DeleteCourse(Guid id)
     {
-        throw new NotImplementedException();
+        var query = "DELETE FROM course WHERE id = @Id";
+        var result = await _dbConnection.ExecuteAsync(query, new { Id = id });
+        return result > 0;
+
     }
 
     public async Task<PaginatedResult<Course>> GetAllCourses(CourseListQuery request)
@@ -31,13 +34,19 @@ public class CourseRepository(IDbConnection _dbConnection) : ICourseRepository
         };
     }
 
-    public Task<Course> GetCourseById(Guid id)
+    public async Task<Course> GetCourseById(Guid id)
     {
-        throw new NotImplementedException();
+        var query = "SELECT * FROM course WHERE id = @Id";
+        var result = await _dbConnection.QuerySingleOrDefaultAsync<Course>(query, new { Id = id });
+        return result;
+
     }
 
-    public Task<bool> UpdateCourse(Course course)
+    public async Task<bool> UpdateCourse(Course course)
     {
-        throw new NotImplementedException();
+        var query = "UPDATE course SET course_name = @Name, course_description = @Description, updated_at = @UpdatedAt WHERE id = @Id";
+        var result = await _dbConnection.ExecuteAsync(query, course);
+        return result > 0;
+
     }
 }
