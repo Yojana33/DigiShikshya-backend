@@ -1,6 +1,5 @@
-using System.Data;
+using System.Reflection;
 using DbUp;
-using Npgsql;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,14 +10,22 @@ var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 var connectionString = configuration.GetConnectionString("PostgreSQL");
 
-// Register Persistence Services
+// --------------------
+// Service Registration Section
+// --------------------
+builder.Services.AddControllers();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new() { Title = "DigiShikshya.API", Version = "v1" });
+});
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
 builder.Services.AddPersistenceServices(connectionString!);
 
 // --------------------
 // Database Migration Section
+// EnsureDatabase.For.PostgresqlDatabase(connectionString);
 // --------------------
-EnsureDatabase.For.PostgresqlDatabase(connectionString);
-
+ // Ensure the database exists
 var upgrader = DeployChanges.To
     .PostgresqlDatabase(connectionString) // Connection string for the PostgreSQL database
     .WithScriptsFromFileSystem("../DigiShikshya.Persistence/Migration") // Folder with migration scripts
@@ -54,5 +61,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseAuthorization();
+app.MapControllers();
 
 app.Run();
