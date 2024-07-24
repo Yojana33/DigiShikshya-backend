@@ -11,8 +11,8 @@ var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 var connectionString = configuration.GetConnectionString("PostgreSQL");
 
-// Register NpgsqlConnection as a scoped service
-builder.Services.AddScoped<IDbConnection>(x => new NpgsqlConnection(connectionString));
+// Register Persistence Services
+builder.Services.AddPersistenceServices(connectionString!);
 
 // --------------------
 // Database Migration Section
@@ -56,4 +56,3 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.Run();
-
