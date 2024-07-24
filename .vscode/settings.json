@@ -1,0 +1,13 @@
+{
+    "explorer.autoRevealExclude": {
+        "**/bin": true,
+        "**/obj": true
+    },
+    "files.exclude": {
+        "**/bin/": true,
+        "**/obj/": true
+    },
+    "files.autoSave": "afterDelay",
+    "editor.formatOnSave": true,
+    "workbench.editor.highlightModifiedTabs": true
+}
