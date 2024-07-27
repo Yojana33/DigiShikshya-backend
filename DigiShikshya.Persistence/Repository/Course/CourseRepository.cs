@@ -1,14 +1,25 @@
 
 using System.Data;
 using Dapper;
+using Microsoft.Extensions.Logging;
 
 public class CourseRepository(IDbConnection _dbConnection) : ICourseRepository
 {
+    private readonly ILogger _logger;
     public async Task<bool> AddCourse(Course course)
     {
-        var query = "INSERT INTO course (id, course_name, course_description,created_at) VALUES (@Id, @Name, @Description, @CreatedAt)";
-        var result = await _dbConnection.ExecuteScalarAsync<bool>(query, course);
-        return result;
+        try
+        {
+            var query = "INSERT INTO course (id, course_name, course_description,created_at) VALUES (@Id, @Name, @Description, @CreatedAt)";
+            await _dbConnection.ExecuteScalarAsync<bool>(query, course);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in AddCourse");
+            return false;
+        }
+
     }
 
     public Task<bool> DeleteCourse(Guid id)
