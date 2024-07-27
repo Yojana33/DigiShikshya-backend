@@ -28,13 +28,6 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "NewProfile": {
-      "commandName": "NewCommand",
-      "launchBrowser": true,
-      "launchUrl": "newUrl",
-      "environmentVariables": {
-        "NEW_ENVIRONMENT": "Development"
-      }
-    }
+    
   }
 }
