@@ -1,4 +1,3 @@
-using System.Reflection;
 using DbUp;
 
 
@@ -18,14 +17,14 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new() { Title = "DigiShikshya.API", Version = "v1" });
 });
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<Program>());
+builder.Services.AddApplicationServices();
 builder.Services.AddPersistenceServices(connectionString!);
 
 // --------------------
 // Database Migration Section
-// EnsureDatabase.For.PostgresqlDatabase(connectionString);
 // --------------------
- // Ensure the database exists
+// Ensure the database exists
 var upgrader = DeployChanges.To
     .PostgresqlDatabase(connectionString) // Connection string for the PostgreSQL database
     .WithScriptsFromFileSystem("../DigiShikshya.Persistence/Migration") // Folder with migration scripts
@@ -53,15 +52,39 @@ else
 // --------------------
 var app = builder.Build();
 
-// Configure the HTTP request pipeline
+// --------------------
+// Middleware Configuration Section
+// --------------------
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "DigiShikshya API v1");
+        c.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None);
+        c.DocumentTitle = "DigiShikshya API";
+        c.RoutePrefix = string.Empty;
+
+        // Additional customizations
+        c.DefaultModelsExpandDepth(-1); // Hide models section
+        c.DefaultModelExpandDepth(1); // Set default expansion depth for models
+        c.DisplayRequestDuration(); // Display request duration
+        c.EnableDeepLinking(); // Enable deep linking
+        c.ShowExtensions(); // Show vendor extensions (x-*)
+        c.EnableFilter(); // Enable filtering by tag
+        c.ShowCommonExtensions(); // Show common extensions
+    });
 }
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
+
+// --------------------
+// Endpoint Mapping Section
+// --------------------
 app.MapControllers();
 
+// --------------------
+// Run the Application
+// --------------------
 app.Run();
