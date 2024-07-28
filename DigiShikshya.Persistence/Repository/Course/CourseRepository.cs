@@ -26,7 +26,7 @@ public class CourseRepository(IDbConnection _dbConnection) : ICourseRepository
     {
 
         var totalCount = await _dbConnection.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM course");
-        var query = "SELECT * ROM course ORDER BY created_at DESC LIMIT @PageSize OFFSET @PageSize * (@Page - 1)";
+        var query = "SELECT * FROM course ORDER BY created_at DESC LIMIT @PageSize OFFSET @PageSize * (@Page - 1)";
         var result = await _dbConnection.QueryAsync<Course>(query, new { request.PageSize, request.Page });
         return new PaginatedResult<Course>
         {
