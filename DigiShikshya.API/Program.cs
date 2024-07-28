@@ -1,4 +1,5 @@
 using DbUp;
+using DigiShikshya.Infrastructure.Middleware;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,6 +22,9 @@ builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<Pr
 builder.Services.AddApplicationServices();
 builder.Services.AddPersistenceServices(connectionString!);
 
+builder.Logging.ClearProviders();
+
+builder.Logging.AddConsole();
 // --------------------
 // Database Migration Section
 // --------------------
@@ -83,7 +87,7 @@ app.UseAuthorization();
 // Endpoint Mapping Section
 // --------------------
 app.MapControllers();
-
+app.UseLoggingMiddleware();
 // --------------------
 // Run the Application
 // --------------------
