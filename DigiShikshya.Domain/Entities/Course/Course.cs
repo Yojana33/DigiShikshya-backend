@@ -1,6 +1,6 @@
-public class Course:Base
+public class Course : Base
 {
-    public string? Name { get; set; }
-    public string? Description { get; set; }
-    
+    public string? CourseName { get; set; }
+    public string? CourseDescription { get; set; }
+
 }
