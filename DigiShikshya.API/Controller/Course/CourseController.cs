@@ -21,4 +21,25 @@ public class CourseController(IMediator _mediator) : ControllerBase
         };
     }
 
+    [HttpGet("all")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetAllCourses([FromQuery] CourseListQuery request)
+    {
+        try
+        {
+            var response = await _mediator.Send(request);
+            return Ok(response);
+        }
+        catch (Exception)
+        {
+            // Log the exception (optional, if not already logged by middleware)
+            // _logger.LogError(ex, "An error occurred while processing the request");
+
+            // Return a custom error response
+            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An unexpected error occurred. Please try again later." });
+        }
+    }
+
+
 }
