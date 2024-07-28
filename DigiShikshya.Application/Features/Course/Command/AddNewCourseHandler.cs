@@ -20,8 +20,8 @@ public class AddNewCourseHandler(ICourseRepository _courseRepository) : IRequest
 
         var course = new Course
         {
-            Name = request.Name,
-            Description = request.Description
+            CourseName = request.Name,
+            CourseDescription = request.Description
         };
 
         var success = await _courseRepository.AddCourse(course);
