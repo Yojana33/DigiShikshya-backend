@@ -4,14 +4,15 @@ class CourseListHandler(ICourseRepository _courseRepository) : IRequestHandler<C
 {
     public async Task<PaginatedResult<CourseListResponse>> Handle(CourseListQuery request, CancellationToken cancellationToken)
     {
+
         var courses = await _courseRepository.GetAllCourses(request);
         var response = new PaginatedResult<CourseListResponse>
         {
             Items = courses?.Items?.Select(x => new CourseListResponse
             {
                 Id = x.Id,
-                Name = x.Name,
-                Description = x.Description,
+                Name = x.CourseName,
+                Description = x.CourseDescription,
                 CreatedAt = x.CreatedAt,
                 UpdatedAt = x.UpdatedAt,
                 CreatedBy = x.CreatedBy,
