@@ -9,7 +9,7 @@ public class CourseRepository(IDbConnection _dbConnection) : ICourseRepository
     public async Task<bool> AddCourse(Course course)
     {
 
-        var query = "INSERT INTO course (id, course_name, course_description,created_at) VALUES (@Id, @CourseName, @Description, @CreatedAt)";
+        var query = "INSERT INTO course (id, course_name, course_description,created_at) VALUES (@Id, @CourseName, @CourseDescription, @CreatedAt)";
         await _dbConnection.ExecuteScalarAsync<bool>(query, course);
         return true;
 
@@ -53,9 +53,9 @@ public class CourseRepository(IDbConnection _dbConnection) : ICourseRepository
 
     public async Task<bool> UpdateCourse(Course course)
     {
-        var query = "UPDATE course SET course_name = @Name, course_description = @Description, updated_at = @UpdatedAt WHERE id = @Id";
-        var result = await _dbConnection.ExecuteAsync(query, course);
-        return result > 0;
+        var query = "UPDATE course SET course_name = @CourseName, course_description = @CourseDescription, updated_at = @UpdatedAt WHERE id = @Id";
+        await _dbConnection.ExecuteScalarAsync<bool>(query, course);
+        return true;
 
     }
 }
