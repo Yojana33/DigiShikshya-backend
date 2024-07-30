@@ -12,6 +12,7 @@ public class UpdateCourseHandler(ICourseRepository _courseRepository) : IRequest
         {
             var course = new Course
             {
+                Id =request.Id,
                 CourseName = request.NewName,
                 CourseDescription = request.NewDescription
             };
