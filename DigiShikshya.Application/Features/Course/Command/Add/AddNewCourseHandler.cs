@@ -30,7 +30,7 @@ public class AddNewCourseHandler(ICourseRepository _courseRepository) : IRequest
         {
             Status = success ? "Success" : "Failed",
             Message = success ? "Course added successfully" : "Failed to add course",
-            Errors = ["Something went wrong, please try again later"]
+            Errors = success ? [""] : ["Something went wrong, please try again later"]
         };
     }
 }
