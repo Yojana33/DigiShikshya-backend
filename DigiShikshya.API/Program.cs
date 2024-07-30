@@ -87,7 +87,7 @@ app.UseAuthorization();
 // Endpoint Mapping Section
 // --------------------
 app.MapControllers();
-app.UseLoggingMiddleware();
+// app.UseLoggingMiddleware();
 // --------------------
 // Run the Application
 // --------------------
