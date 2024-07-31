@@ -3,8 +3,14 @@ using System.Data;
 using Dapper;
 using Microsoft.Extensions.Logging;
 
-public class CourseRepository(IDbConnection _dbConnection) : ICourseRepository
+public class CourseRepository : ICourseRepository
 {
+    public CourseRepository(IDbConnection dbConnection)
+    {
+        _dbConnection = dbConnection;
+        Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
+    }
+    private readonly IDbConnection _dbConnection;
 
     public async Task<bool> AddCourse(Course course)
     {
