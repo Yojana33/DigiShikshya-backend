@@ -6,3 +6,4 @@ public interface ISemesterRepository
     Task<bool> UpdateSemester(Semester semester);
     Task<bool> DeleteSemester(Guid id);
 }
+//
