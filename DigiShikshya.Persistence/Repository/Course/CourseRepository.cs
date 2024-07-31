@@ -53,7 +53,7 @@ public class CourseRepository : ICourseRepository
     {
         var query = "SELECT * FROM course WHERE id = @Id";
         var result = await _dbConnection.QuerySingleOrDefaultAsync<Course>(query, new { Id = id });
-        return result;
+        return result!;
 
     }
 
