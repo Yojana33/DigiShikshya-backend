@@ -58,6 +58,25 @@ public class CourseController(IMediator _mediator) : ControllerBase
         };
     }
 
+    [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> DeleteCourse(Guid id)
+    {
+        var request = new DeleteCourse { Id = id };
+        var response = await _mediator.Send(request);
+
+        return response.Status switch
+        {
+            "Success" => Ok(response),
+            "Bad Request" => BadRequest(response),
+            "Internal Server Error" => StatusCode(StatusCodes.Status500InternalServerError, response),
+            _ => StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.")
+        };
+    }
+
+
 
 
 }
