@@ -64,4 +64,11 @@ public class CourseRepository : ICourseRepository
         return true;
 
     }
+
+    public async Task<bool> CourseNameExists(string courseName)
+    {
+        var query = "SELECT COUNT(*) FROM course WHERE course_name = @CourseName";
+        var count = await _dbConnection.ExecuteScalarAsync<int>(query, new { CourseName = courseName });
+        return count > 0;
+    }
 }
