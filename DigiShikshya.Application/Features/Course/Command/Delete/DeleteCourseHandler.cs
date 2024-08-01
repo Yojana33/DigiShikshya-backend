@@ -1,27 +1,48 @@
 using MediatR;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-public class DeleteCourseHandler(ICourseRepository _courseRepository) : IRequestHandler<DeleteCourse, DeleteCourseResponse>
+public class DeleteCourseHandler : IRequestHandler<DeleteCourse, DeleteCourseResponse>
 {
+    private readonly ICourseRepository _courseRepository;
+
+    public DeleteCourseHandler(ICourseRepository courseRepository)
+    {
+        _courseRepository = courseRepository;
+    }
+
     public async Task<DeleteCourseResponse> Handle(DeleteCourse request, CancellationToken cancellationToken)
     {
-        var response = new DeleteCourseResponse();
+        var course = await _courseRepository.GetCourseById(request.Id);
+        if (course == null)
+        {
+            return new DeleteCourseResponse
+            {
+                Status = "Bad Request",
+                Message = "Validation failed",
+                Errors = new List<string> { "Course not found." }
+            };
+        }
+
         var validator = new DeleteCourseValidator();
         var validationResult = validator.Validate(request);
-
-        if (validationResult.IsValid)
+        if (!validationResult.IsValid)
         {
-            var success = await _courseRepository.DeleteCourse(request.Id);
-            response.IsSuccess = success;
-            response.Message = success ? new List<string> { "Course deleted successfully" } : new List<string> { "Failed to delete course" };
+            return new DeleteCourseResponse
+            {
+                Status = "Bad Request",
+                Message = "Validation failed",
+                Errors = validationResult.Errors.Select(x => x.ErrorMessage).ToList()
+            };
         }
-        else
+       
+        var success = await _courseRepository.DeleteCourse(request.Id);
+        return new DeleteCourseResponse
         {
-            response.IsSuccess = false;
-            response.Message = validationResult.Errors.Select(x => x.ErrorMessage).ToList();
-        }
-
-        return response;
+            Status = success ? "Success" : "Failed",
+            Message = success ? "Course deleted successfully." : "Failed to delete course.",
+            Errors = success ? null : new List<string> { "Something went wrong, please try again later." }
+        };
     }
 }
