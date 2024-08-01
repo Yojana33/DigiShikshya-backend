@@ -5,4 +5,6 @@ public interface ICourseRepository
     Task<bool> AddCourse(Course course);
     Task<bool> UpdateCourse(Course course);
     Task<bool> DeleteCourse(Guid id);
+
+    Task<bool> CourseNameExists(string courseName);
 }
