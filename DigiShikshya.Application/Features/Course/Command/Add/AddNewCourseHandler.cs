@@ -5,6 +5,18 @@ public class AddNewCourseHandler(ICourseRepository _courseRepository) : IRequest
 {
     public async Task<AddNewCourseResponse> Handle(AddNewCourse request, CancellationToken cancellationToken)
     {
+
+        var courseExists = await _courseRepository.CourseNameExists(request.Name!);
+        if (courseExists)
+        {
+            return new AddNewCourseResponse
+            {
+                Status = "Bad Request",
+                Message = "Validation failed",
+                Errors = new List<string> { "This course already exists." }
+            };
+        }
+
         var validator = new AddNewCourseValidator();
         var validationResult = validator.Validate(request);
 
