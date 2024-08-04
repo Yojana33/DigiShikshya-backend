@@ -5,9 +5,15 @@ using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
 
-public class SemesterRepository(IDbConnection _dbConnection) : ISemesterRepository
+public class SemesterRepository : ISemesterRepository
 {
 
+    public SemesterRepository(IDbConnection dbConnection)
+    {
+        _dbConnection = dbConnection;
+        Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
+    }
+    private readonly IDbConnection _dbConnection;
     public async Task<bool> AddSemester(Semester semester)
     {
         var query = @"INSERT INTO semester 
