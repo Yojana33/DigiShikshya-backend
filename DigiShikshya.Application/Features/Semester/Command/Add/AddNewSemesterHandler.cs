@@ -8,6 +8,18 @@ public class AddNewSemesterHandler(ISemesterRepository _semesterRepository) : IR
 
     public async Task<AddNewSemesterResponse> Handle(AddNewSemester request, CancellationToken cancellationToken)
     {
+        var semesterExists = await _semesterRepository.SemesterAlreadyExists(request.SemesterName!);
+        if (semesterExists)
+        {
+            return new AddNewSemesterResponse
+            {
+                Status = "Bad Request",
+                Message = "Validation failed",
+                Errors = new List<string> { "This semester already exists." }
+            };
+        }
+
+
         var validator = new AddNewSemesterValidator();
         var validationResult = validator.Validate(request);
 
