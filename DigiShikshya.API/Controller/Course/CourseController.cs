@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Mvc;
 public class CourseController(IMediator _mediator) : ControllerBase
 {
     [HttpPost("add")]
-    [ProducesResponseType(StatusCodes.Status201Created)]
     public async Task<IActionResult> AddCourse(AddNewCourse request)
     {
         var response = await _mediator.Send(request);
@@ -22,8 +21,6 @@ public class CourseController(IMediator _mediator) : ControllerBase
     }
 
     [HttpGet("all")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetAllCourses([FromQuery] CourseListQuery request)
     {
         try
@@ -33,18 +30,13 @@ public class CourseController(IMediator _mediator) : ControllerBase
         }
         catch (Exception)
         {
-            // Log the exception (optional, if not already logged by middleware)
-            // _logger.LogError(ex, "An error occurred while processing the request");
-
-            // Return a custom error response
             return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An unexpected error occurred. Please try again later." });
         }
     }
 
+
     [HttpPatch("update")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+
     public async Task<IActionResult> UpdateCourse(UpdateCourse request)
     {
         var response = await _mediator.Send(request);
@@ -59,9 +51,6 @@ public class CourseController(IMediator _mediator) : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> DeleteCourse(Guid id)
     {
         var request = new DeleteCourse { Id = id };

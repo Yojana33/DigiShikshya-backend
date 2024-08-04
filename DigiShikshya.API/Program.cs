@@ -71,12 +71,7 @@ if (app.Environment.IsDevelopment())
 
         // Additional customizations
         c.DefaultModelsExpandDepth(-1); // Hide models section
-        c.DefaultModelExpandDepth(1); // Set default expansion depth for models
-        c.DisplayRequestDuration(); // Display request duration
-        c.EnableDeepLinking(); // Enable deep linking
-        c.ShowExtensions(); // Show vendor extensions (x-*)
-        c.EnableFilter(); // Enable filtering by tag
-        c.ShowCommonExtensions(); // Show common extensions
+        ; // Show common extensions
     });
 }
 
@@ -87,7 +82,7 @@ app.UseAuthorization();
 // Endpoint Mapping Section
 // --------------------
 app.MapControllers();
-// app.UseLoggingMiddleware();
+app.UseLoggingMiddleware();
 // --------------------
 // Run the Application
 // --------------------

@@ -45,7 +45,6 @@ public class LoggingMiddleware
                 // Log the exception only if the response has not started
                 if (!context.Response.HasStarted)
                 {
-                    // Log the exception
                     _logger.LogError(ex, "An error occurred while processing the request");
 
                     // Clear any existing response
@@ -57,7 +56,6 @@ public class LoggingMiddleware
                     var errorResponse = new { message = "An unexpected error occurred. Please try again later." };
                     var errorResponseJson = JsonSerializer.Serialize(errorResponse);
 
-                    // Write the error response to the response body
                     await context.Response.WriteAsync(errorResponseJson);
                 }
                 else
