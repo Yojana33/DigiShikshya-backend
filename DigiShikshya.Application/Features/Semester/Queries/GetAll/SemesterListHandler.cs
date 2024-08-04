@@ -24,7 +24,7 @@ class SemesterListHandler(ISemesterRepository _semesterRepository) : IRequestHan
                 IsActive = x.IsActive
 
             }).ToList(),
-            Page = semesters.Page,
+            Page = semesters!.Page,
             PageSize = semesters.PageSize,
             TotalCount = semesters.TotalCount,
             TotalPages = semesters.TotalPages
