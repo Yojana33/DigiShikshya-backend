@@ -6,22 +6,37 @@ public class DeleteSemesterHandler(ISemesterRepository _semesterRepository) : IR
 {
     public async Task<DeleteSemesterResponse> Handle(DeleteSemester request, CancellationToken cancellationToken)
     {
-        var response = new DeleteSemesterResponse();
+       // var response = new DeleteSemesterResponse();
+        var course = await _semesterRepository.GetSemesterById(request.Id);
+        if (course == null)
+        {
+            return new DeleteSemesterResponse
+            {
+                Status = "Bad Request",
+                Message = "Validation failed",
+                Errors = new List<string> { "Semester not found." }
+            };
+        }
+
         var validator = new DeleteSemesterValidator();
         var validationResult = validator.Validate(request);
-
-        if (validationResult.IsValid)
+        if (!validationResult.IsValid)
         {
-            var success = await _semesterRepository.DeleteSemester(request.Id);
-            response.IsSuccess = success;
-            response.Message = success ? new List<string> { "Semester deleted successfully" } : new List<string> { "Failed to delete semester" };
-        }
-        else
-        {
-            response.IsSuccess = false;
-            response.Message = validationResult.Errors.Select(x => x.ErrorMessage).ToList();
+            return new DeleteSemesterResponse
+            {
+                Status = "Bad Request",
+                Message = "Validation failed",
+                Errors = validationResult.Errors.Select(x => x.ErrorMessage).ToList()
+            };
         }
 
-        return response;
+        var success = await _semesterRepository.DeleteSemester(request.Id);
+        return new DeleteSemesterResponse
+        {
+            Status = success ? "Success" : "Failed",
+            Message = success ? "Semester deleted successfully." : "Failed to delete course.",
+            Errors = success ? null : new List<string> { "Something went wrong, please try again later." }
+        };
     }
+
 }
