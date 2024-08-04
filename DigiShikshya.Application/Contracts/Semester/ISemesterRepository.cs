@@ -5,5 +5,6 @@ public interface ISemesterRepository
     Task<bool> AddSemester(Semester semester);
     Task<bool> UpdateSemester(Semester semester);
     Task<bool> DeleteSemester(Guid id);
+    Task<bool> SemesterAlreadyExists(string semesterName);
 }
 //
