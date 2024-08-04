@@ -17,6 +17,30 @@ public class UpdateCourseHandler(ICourseRepository _courseRepository) : IRequest
             return response;
         }
 
+        var existingCourse = await _courseRepository.GetCourseById(request.Id);
+        if (existingCourse == null)
+        {
+            response.Status = "Bad Request";
+            response.Message = "Validation failed";
+            response.Errors = new List<string> { "Course not found." };
+            return response;
+        }
+
+        if (request.NewName != existingCourse.CourseName)
+        {
+            var courseExists = await _courseRepository.CourseNameExists(request.NewName!);
+            if (courseExists)
+            {
+                return new UpdateCourseResponse
+                {
+                    Status = "Bad Request",
+                    Message = "Validation failed",
+                    Errors = new List<string> { "A course with this name already exists." }
+                };
+            }
+        }
+
+
         var updateCourse = new Course
         {
             Id = request.Id,
