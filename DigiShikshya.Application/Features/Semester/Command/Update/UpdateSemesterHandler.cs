@@ -21,7 +21,7 @@ public class UpdateSemesterHandler : IRequestHandler<UpdateSemester, UpdateSemes
 
         if (!validationResult.IsValid)
         {
-            response.Message = validationResult.Errors.Select(x => x.ErrorMessage).ToList();
+            // response.Message = validationResult.Errors.Select(x => x.ErrorMessage).ToList();
             response.IsSuccess = false;
             return response;
         }
@@ -29,20 +29,42 @@ public class UpdateSemesterHandler : IRequestHandler<UpdateSemester, UpdateSemes
         var existingSemester = await _semesterRepository.GetSemesterById(request.Id);
         if (existingSemester == null)
         {
-            response.IsSuccess = false;
-            response.Message = new List<string> { "Semester not found" };
-            return response;
+            return new UpdateSemesterResponse
+            {
+                Status = "Bad Request",
+                Message = "Validation failed",
+                Errors = new List<string> { "Semester could not be found." }
+            };
         }
-         
+
+        if (request.NewName != existingSemester.SemesterName)
+        {
+            var semesterExists = await _semesterRepository.SemesterAlreadyExists(request.NewName!);
+            if (semesterExists)
+            {
+                return new UpdateSemesterResponse
+                {
+                    Status = "Bad Request",
+                    Message = "Validation failed",
+                    Errors = new List<string> { "This semester already exists." }
+                };
+            }
+        }
+
+
+
         existingSemester.SemesterName = request.NewName ?? existingSemester.SemesterName;
         existingSemester.StartDate = request.NewStartDate ?? existingSemester.StartDate;
         existingSemester.EndDate = request.NewEndDate ?? existingSemester.EndDate;
         existingSemester.UpdatedAt = DateTime.Now;
 
         var success = await _semesterRepository.UpdateSemester(existingSemester);
-        response.IsSuccess = success;
-        response.Message = success ? new List<string> { "Semester updated successfully" } : new List<string> { "Failed to update semester" };
+        return new UpdateSemesterResponse
+        {
+            Status = success ? "Success" : "Failed",
+            Message = success ? "Semester updated successfully" : "Failed to update semester",
+            Errors = success ? null : new List<string> { "Something went wrong, please try again later" }
+        };
 
-        return response;
     }
 }
