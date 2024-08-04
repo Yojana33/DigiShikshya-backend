@@ -55,7 +55,7 @@ public class SemesterRepository(IDbConnection _dbConnection) : ISemesterReposito
     {
         var query = "SELECT * FROM semester WHERE id = @Id";
         var result = await _dbConnection.QuerySingleOrDefaultAsync<Semester>(query, new { Id = id });
-        return result;
+        return result!;
     }
 
     public async Task<bool> UpdateSemester(Semester semester)
@@ -70,4 +70,13 @@ public class SemesterRepository(IDbConnection _dbConnection) : ISemesterReposito
         var result = await _dbConnection.ExecuteAsync(query, semester);
         return result > 0;
     }
+
+    public async Task<bool> SemesterAlreadyExists(string semesterName)
+    {
+        var query = "SELECT COUNT(*) FROM semester WHERE semester_name = @SemesterName";
+        var count = await _dbConnection.ExecuteScalarAsync<int>(query, new { SemesterName = semesterName });
+        return count > 0;
+    }
+
+
 }
