@@ -70,13 +70,19 @@ public class SemesterRepository : ISemesterRepository
                       SET semester_name = @SemesterName, 
                           start_date = @StartDate, 
                           end_date = @EndDate,
-                          updated_at = @UpdatedAt, 
+                          updated_at = @UpdatedAt
                       WHERE id = @Id";
 
         var result = await _dbConnection.ExecuteAsync(query, semester);
         return result > 0;
     }
 
+    /*    
+    
+     
+    all pass ?
+    ahhhhhhhhhhhhhh course ra semester ko course semester ko ni ? sakekai chaina tyo
+     */
     public async Task<bool> SemesterAlreadyExists(string semesterName)
     {
         var query = "SELECT COUNT(*) FROM semester WHERE semester_name = @SemesterName";
