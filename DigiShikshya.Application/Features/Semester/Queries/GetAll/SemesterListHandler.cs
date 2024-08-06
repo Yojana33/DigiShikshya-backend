@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-class SemesterListHandler(ISemesterRepository _semesterRepository) : IRequestHandler<SemesterListQuery, PaginatedResult<SemesterListResponse>>
+public class SemesterListHandler(ISemesterRepository _semesterRepository) : IRequestHandler<SemesterListQuery, PaginatedResult<SemesterListResponse>>
 {
     public async Task<PaginatedResult<SemesterListResponse>> Handle(SemesterListQuery request, CancellationToken cancellationToken)
     {
