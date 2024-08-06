@@ -46,7 +46,7 @@ public class UpdateSemesterHandler : IRequestHandler<UpdateSemester, UpdateSemes
                 {
                     Status = "Bad Request",
                     Message = "Validation failed",
-                    Errors = new List<string> { "This semester already exists." }
+                    Errors = ["This semester already exists."]
                 };
             }
         }
@@ -54,8 +54,8 @@ public class UpdateSemesterHandler : IRequestHandler<UpdateSemester, UpdateSemes
 
 
         existingSemester.SemesterName = request.NewName ?? existingSemester.SemesterName;
-        existingSemester.StartDate = request.NewStartDate ?? existingSemester.StartDate;
-        existingSemester.EndDate = request.NewEndDate ?? existingSemester.EndDate;
+        existingSemester.StartDate = request.NewStartDate != DateTime.MinValue ? request.NewStartDate : existingSemester.StartDate;
+        existingSemester.EndDate = request.NewEndDate != DateTime.MinValue ? request.NewEndDate : existingSemester.EndDate;
         existingSemester.UpdatedAt = DateTime.Now;
 
         var success = await _semesterRepository.UpdateSemester(existingSemester);
@@ -63,7 +63,7 @@ public class UpdateSemesterHandler : IRequestHandler<UpdateSemester, UpdateSemes
         {
             Status = success ? "Success" : "Failed",
             Message = success ? "Semester updated successfully" : "Failed to update semester",
-            Errors = success ? null : new List<string> { "Something went wrong, please try again later" }
+            Errors = success ? null : ["Something went wrong, please try again later"]
         };
 
     }
