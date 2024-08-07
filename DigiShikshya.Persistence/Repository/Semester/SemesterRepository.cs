@@ -7,7 +7,7 @@ public class SemesterRepository : ISemesterRepository
 {
     private readonly IDbConnection _dbConnection;
 
-    public SemesterRepository(IDbConnection dbConnection, IDbTransaction dbTransaction)
+    public SemesterRepository(IDbConnection dbConnection)
     {
         _dbConnection = dbConnection;
         Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
@@ -16,9 +16,6 @@ public class SemesterRepository : ISemesterRepository
 
     public async Task<bool> AddSemester(Semester semester)
     {
-        // Ensure the CreatedAt property is set
-        semester.CreatedAt = DateTime.UtcNow;
-
         var semesterQuery = @"INSERT INTO semester 
                               (id, semester_name, course_id, start_date, end_date, created_at) 
                               VALUES 
@@ -28,63 +25,60 @@ public class SemesterRepository : ISemesterRepository
                                     (id, course_id, semester_id, created_at) 
                                     VALUES 
                                     (@Id, @CourseId, @SemesterId, @CreatedAt)";
-
-
-        using var dbTransaction = _dbConnection.BeginTransaction();
+        _dbConnection.Open();
+        using var transaction = _dbConnection.BeginTransaction();
+        try
         {
-            try
+            // Insert into the semester table
+            var semesterResult = await _dbConnection.ExecuteAsync(semesterQuery, new
             {
-                // Insert into the semester table
-                var semesterResult = await _dbConnection.ExecuteAsync(semesterQuery, new
-                {
-                    Id = semester.Id,
-                    SemesterName = semester.SemesterName,
-                    CourseId = semester.CourseId,
-                    StartDate = semester.StartDate,
-                    EndDate = semester.EndDate,
-                    CreatedAt = semester.CreatedAt
-                });
+                semester.Id,
+                semester.SemesterName,
+                semester.CourseId,
+                semester.StartDate,
+                semester.EndDate,
+                semester.CreatedAt
+            }, transaction);
 
-                if (semesterResult <= 0)
-                {
-                    throw new Exception("Failed to insert into semester table.");
-                }
-
-                // Insert into the course_semester table
-                var courseSemester = new CourseSemester
-                {
-                    Id = Guid.NewGuid(), // Generate a new ID for course_semester
-                    CourseId = semester.CourseId,
-                    SemesterId = semester.Id,
-                    CreatedAt = semester.CreatedAt
-                };
-
-                var courseSemesterResult = await _dbConnection.ExecuteAsync(courseSemesterQuery, new
-                {
-                    Id = courseSemester.Id,
-                    CourseId = courseSemester.CourseId,
-                    SemesterId = courseSemester.SemesterId,
-                    CreatedAt = courseSemester.CreatedAt
-                });
-
-                if (courseSemesterResult <= 0)
-                {
-                    throw new Exception("Failed to insert into course_semester table.");
-                }
-
-                // Commit the transaction if both inserts succeed
-                dbTransaction.Commit();
-                return true;
-            }
-            catch
+            if (semesterResult <= 0)
             {
-                // Rollback the transaction if any error occurs
-                dbTransaction.Rollback();
-                throw;
+                throw new Exception("Failed to insert into semester table.");
             }
+
+            // Insert into the course_semester table
+            var courseSemester = new CourseSemester
+            {
+                Id = Guid.NewGuid(),
+                CourseId = semester.CourseId,
+                SemesterId = semester.Id,
+                CreatedAt = semester.CreatedAt
+            };
+
+            var courseSemesterResult = await _dbConnection.ExecuteAsync(courseSemesterQuery, new
+            {
+                courseSemester.Id,
+                courseSemester.CourseId,
+                courseSemester.SemesterId,
+                courseSemester.CreatedAt
+            }, transaction);
+
+            if (courseSemesterResult <= 0)
+            {
+                throw new Exception("Failed to insert into course_semester table.");
+            }
+
+            // Commit the transaction if both inserts succeed
+            transaction.Commit();
+            return true;
+        }
+        catch
+        {
+            // Rollback the transaction if any error occurs
+            transaction.Rollback();
+            _dbConnection.Close();
+            throw;
         }
     }
-
 
     public async Task<bool> DeleteSemester(Guid id)
     {
