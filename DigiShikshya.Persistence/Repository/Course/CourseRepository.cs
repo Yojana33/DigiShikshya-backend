@@ -14,10 +14,8 @@ public class CourseRepository : ICourseRepository
 
     public async Task<bool> AddCourse(Course course)
     {
-        _dbConnection.BeginTransaction();
         var query = "INSERT INTO course (id, course_name, course_description,created_at) VALUES (@Id, @CourseName, @CourseDescription, @CreatedAt)";
         await _dbConnection.ExecuteScalarAsync<bool>(query, course);
-        _dbConnection.Dispose();
 
         return true;
     }
