@@ -36,6 +36,7 @@ public class AddNewSemesterHandler(ISemesterRepository _semesterRepository) : IR
         var semester = new Semester
         {
             SemesterName = request.SemesterName,
+            CourseId = request.CourseId,
             StartDate = request.StartDate,
             EndDate = request.EndDate,
         };
