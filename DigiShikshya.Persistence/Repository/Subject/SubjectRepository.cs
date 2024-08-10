@@ -74,13 +74,26 @@ public class SubjectRepository : ISubjectRepository
         return result!;
     }
 
-//
+    //
 
 
-    public Task<bool> UpdateSubject(Subject subject)
+    public async Task<bool> UpdateSubject(Subject subject)
     {
-        throw new NotImplementedException();
+        var query = @"
+        UPDATE subject 
+        SET 
+            subject_name = @SubjectName, 
+            subject_code = @SubjectCode, 
+            subject_description = @SubjectDescription, 
+            credit_hour = @CreditHour, 
+            course_semester_id = @CourseSemesterId, 
+            updated_at = @UpdatedAt 
+        WHERE id = @Id";
+
+        var result = await _dbConnection.ExecuteAsync(query, subject);
+        return result > 0;
     }
+
 
     public Task<bool> DeleteSubject(Guid id)
     {
