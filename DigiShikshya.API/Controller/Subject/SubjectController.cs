@@ -44,4 +44,21 @@ public class SubjectController(IMediator _mediator) : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An unexpected error occurred. Please try again later." });
         }
     }
+
+    [HttpPut("update")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> UpdateSubject(UpdateSubject request)
+    {
+        var response = await _mediator.Send(request);
+
+        return response.Status switch
+        {
+            "Success" => Ok(response),
+            "Bad Request" => BadRequest(response),
+            "Internal Server Error" => StatusCode(StatusCodes.Status500InternalServerError, response),
+            _ => StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.")
+        };
+    }
 }
