@@ -52,7 +52,7 @@ public class UpdateSemesterHandler : IRequestHandler<UpdateSemester, UpdateSemes
         }
 
 
-
+        existingSemester.CourseId = request.NewCourseId != Guid.Empty ? request.NewCourseId : existingSemester.CourseId;
         existingSemester.SemesterName = request.NewName ?? existingSemester.SemesterName;
         existingSemester.StartDate = request.NewStartDate != DateTime.MinValue ? request.NewStartDate : existingSemester.StartDate;
         existingSemester.EndDate = request.NewEndDate != DateTime.MinValue ? request.NewEndDate : existingSemester.EndDate;
