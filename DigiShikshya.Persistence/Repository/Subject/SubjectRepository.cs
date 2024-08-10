@@ -95,9 +95,13 @@ public class SubjectRepository : ISubjectRepository
     }
 
 
-    public Task<bool> DeleteSubject(Guid id)
+    public async Task<bool> DeleteSubject(Guid id)
     {
-        throw new NotImplementedException();
+        var query = "DELETE FROM subject WHERE id = @Id";
+
+        var result = await _dbConnection.ExecuteAsync(query, new { Id = id });
+
+        return result > 0;
     }
 
     public async Task<bool> SubjectAlreadyExists(string subjectName)
