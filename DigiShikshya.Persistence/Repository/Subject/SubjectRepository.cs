@@ -19,15 +19,57 @@ public class SubjectRepository : ISubjectRepository
         return true;
     }
 
-    public Task<PaginatedResult<SubjectListResponse>> GetAllSubjects(SubjectListQuery request)
+    public async Task<PaginatedResult<SubjectListResponse>> GetAllSubjects(SubjectListQuery request)
     {
-        throw new NotImplementedException();
+        var totalCountQuery = "SELECT COUNT(*) FROM subject";
+        var totalCount = await _dbConnection.ExecuteScalarAsync<int>(totalCountQuery);
+
+        var query = @"
+    SELECT s.subject_id AS Id, s.subject_name AS SubjectName, s.subject_code AS SubjectCode, 
+           s.subject_description AS SubjectDescription, s.credit_hour AS CreditHour, 
+           cs.course_id AS CourseId, c.course_name AS CourseName, 
+           cs.semester_name AS SemesterName, 
+           s.created_at AS CreatedAt, s.updated_at AS UpdatedAt 
+    FROM subject s
+    INNER JOIN course_semester cs ON s.course_semester_id = cs.id
+    INNER JOIN course c ON cs.course_id = c.id
+    ORDER BY s.created_at DESC 
+    OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+
+        var result = await _dbConnection.QueryAsync<SubjectListResponse>(query, new
+        {
+            Offset = (request.Page - 1) * request.PageSize,
+            PageSize = request.PageSize
+        });
+
+        return new PaginatedResult<SubjectListResponse>
+        {
+            Items = result.ToList(),
+            Page = request.Page,
+            PageSize = request.PageSize,
+            TotalCount = totalCount,
+            TotalPages = (int)Math.Ceiling(totalCount / (double)request.PageSize)
+        };
     }
 
-    public Task<SubjectListResponse> GetSubjectById(Guid id)
+
+    public async Task<SubjectListResponse> GetSubjectById(Guid id)
     {
-        throw new NotImplementedException();
+        var query = @"
+        SELECT s.subject_id AS Id, s.subject_name AS SubjectName, s.subject_code AS SubjectCode, 
+               s.subject_description AS SubjectDescription, s.credit_hour AS CreditHour, 
+               cs.course_id AS CourseId, c.course_name AS CourseName, 
+               cs.semester_name AS SemesterName, 
+               s.created_at AS CreatedAt, s.updated_at AS UpdatedAt 
+        FROM subject s
+        INNER JOIN course_semester cs ON s.course_semester_id = cs.id
+        INNER JOIN course c ON cs.course_id = c.id
+        WHERE s.subject_id = @Id";
+
+        var result = await _dbConnection.QuerySingleOrDefaultAsync<SubjectListResponse>(query, new { Id = id });
+        return result!;
     }
+
 
     public Task<bool> UpdateSubject(Subject subject)
     {
@@ -39,8 +81,11 @@ public class SubjectRepository : ISubjectRepository
         throw new NotImplementedException();
     }
 
-    public Task<bool> SubjectAlreadyExists(string subjectName)
+    public async Task<bool> SubjectAlreadyExists(string subjectName)
     {
-        throw new NotImplementedException();
+        var query = "SELECT COUNT(*) FROM subject WHERE subject_name = @SubjectName";
+        var count = await _dbConnection.ExecuteScalarAsync<int>(query, new { SubjectName = subjectName });
+        return count > 0;
     }
+
 }
