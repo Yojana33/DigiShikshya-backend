@@ -25,13 +25,15 @@ public class SubjectRepository : ISubjectRepository
         var totalCount = await _dbConnection.ExecuteScalarAsync<int>(totalCountQuery);
 
         var query = @"
-    SELECT s.subject_id AS Id, s.subject_name AS SubjectName, s.subject_code AS SubjectCode, 
+    SELECT s.id AS Id, s.subject_name AS SubjectName, s.subject_code AS SubjectCode, 
            s.subject_description AS SubjectDescription, s.credit_hour AS CreditHour, 
-           cs.course_id AS CourseId, c.course_name AS CourseName, 
-           cs.semester_name AS SemesterName, 
+           cs.id AS CourseSemesterId,  -- Include course_semester_id
+           sem.semester_name AS SemesterName, 
+           c.course_name AS CourseName, 
            s.created_at AS CreatedAt, s.updated_at AS UpdatedAt 
     FROM subject s
     INNER JOIN course_semester cs ON s.course_semester_id = cs.id
+    INNER JOIN semester sem ON cs.semester_id = sem.id
     INNER JOIN course c ON cs.course_id = c.id
     ORDER BY s.created_at DESC 
     OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
@@ -56,19 +58,23 @@ public class SubjectRepository : ISubjectRepository
     public async Task<SubjectListResponse> GetSubjectById(Guid id)
     {
         var query = @"
-        SELECT s.subject_id AS Id, s.subject_name AS SubjectName, s.subject_code AS SubjectCode, 
-               s.subject_description AS SubjectDescription, s.credit_hour AS CreditHour, 
-               cs.course_id AS CourseId, c.course_name AS CourseName, 
-               cs.semester_name AS SemesterName, 
-               s.created_at AS CreatedAt, s.updated_at AS UpdatedAt 
-        FROM subject s
-        INNER JOIN course_semester cs ON s.course_semester_id = cs.id
-        INNER JOIN course c ON cs.course_id = c.id
-        WHERE s.subject_id = @Id";
+    SELECT s.id AS Id, s.subject_name AS SubjectName, s.subject_code AS SubjectCode, 
+           s.subject_description AS SubjectDescription, s.credit_hour AS CreditHour, 
+           cs.id AS CourseSemesterId,  -- Include course_semester_id
+           sem.semester_name AS SemesterName, 
+           c.course_name AS CourseName, 
+           s.created_at AS CreatedAt, s.updated_at AS UpdatedAt 
+    FROM subject s
+    INNER JOIN course_semester cs ON s.course_semester_id = cs.id
+    INNER JOIN semester sem ON cs.semester_id = sem.id
+    INNER JOIN course c ON cs.course_id = c.id
+    WHERE s.id = @Id";
 
         var result = await _dbConnection.QuerySingleOrDefaultAsync<SubjectListResponse>(query, new { Id = id });
         return result!;
     }
+
+
 
 
     public Task<bool> UpdateSubject(Subject subject)
