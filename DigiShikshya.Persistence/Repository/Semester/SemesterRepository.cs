@@ -130,16 +130,66 @@ public class SemesterRepository : ISemesterRepository
 
     public async Task<bool> UpdateSemester(Semester semester)
     {
-        var query = @"UPDATE semester 
-                      SET semester_name = @SemesterName, 
-                          start_date = @StartDate, 
-                          end_date = @EndDate,
-                          updated_at = @UpdatedAt
-                      WHERE id = @Id";
+        var semesterQuery = @"UPDATE semester 
+                          SET semester_name = @SemesterName, 
+                              course_id = @CourseId,
+                              start_date = @StartDate, 
+                              end_date = @EndDate,
+                              updated_at = @UpdatedAt
+                          WHERE id = @Id";
 
-        var result = await _dbConnection.ExecuteAsync(query, semester);
-        return result > 0;
+        var courseSemesterQuery = @"UPDATE course_semester 
+                                SET course_id = @CourseId, 
+                                    semester_id = @SemesterId, 
+                                    created_at = @CreatedAt
+                                WHERE semester_id = @SemesterId";
+
+        _dbConnection.Open();
+        using var transaction = _dbConnection.BeginTransaction();
+        try
+        {
+            // Update the semester table
+            var semesterResult = await _dbConnection.ExecuteAsync(semesterQuery, new
+            {
+                semester.Id,
+                semester.SemesterName,
+                semester.CourseId,
+                semester.StartDate,
+                semester.EndDate,
+                semester.UpdatedAt
+            }, transaction);
+
+            if (semesterResult <= 0)
+            {
+                throw new Exception("Failed to update the semester table.");
+            }
+
+            // Update the course_semester table
+            var courseSemesterResult = await _dbConnection.ExecuteAsync(courseSemesterQuery, new
+            {
+                CourseId = semester.CourseId,
+                SemesterId = semester.Id,
+                CreatedAt = semester.CreatedAt // Assuming this stays the same
+            }, transaction);
+
+            if (courseSemesterResult <= 0)
+            {
+                throw new Exception("Failed to update the course_semester table.");
+            }
+
+            // Commit the transaction if both updates succeed
+            transaction.Commit();
+            return true;
+        }
+        catch
+        {
+            // Rollback the transaction if any error occurs
+            transaction.Rollback();
+            _dbConnection.Close();
+            throw;
+        }
     }
+
 
     public async Task<bool> SemesterAlreadyExists(string semesterName)
     {
