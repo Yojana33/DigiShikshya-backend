@@ -10,7 +10,7 @@ CREATE TABLE subject
     modified_by VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    is_active BOOLEAN DEFAULT TRUE
+    is_active BOOLEAN DEFAULT TRUE,
 
     FOREIGN KEY (course_semester_id) REFERENCES course_semester(id)
 );
