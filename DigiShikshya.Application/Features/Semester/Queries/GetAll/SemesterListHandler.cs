@@ -15,6 +15,8 @@ public class SemesterListHandler(ISemesterRepository _semesterRepository) : IReq
             {
                 Id = x.Id,
                 SemesterName = x.SemesterName,
+                CourseId = x.CourseId,
+                CourseName = x.CourseName,
                 StartDate = x.StartDate,
                 EndDate = x.EndDate,
                 CreatedAt = x.CreatedAt,
