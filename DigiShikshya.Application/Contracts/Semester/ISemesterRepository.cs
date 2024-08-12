@@ -1,6 +1,6 @@
 public interface ISemesterRepository
 {
-    Task<PaginatedResult<Semester>> GetAllSemesters(SemesterListQuery request);
+    Task<PaginatedResult<SemesterListResponse>> GetAllSemesters(SemesterListQuery request);
     Task<Semester> GetSemesterById(Guid id);
     Task<bool> AddSemester(Semester semester);
     Task<bool> UpdateSemester(Semester semester);
