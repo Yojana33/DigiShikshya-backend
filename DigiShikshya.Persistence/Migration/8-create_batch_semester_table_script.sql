@@ -1,4 +1,4 @@
-CREATE TABLE course_semester
+CREATE TABLE batch_semester
 (
     id UUID PRIMARY KEY,
     batch_id UUID NOT NULL,
