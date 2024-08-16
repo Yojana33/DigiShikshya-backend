@@ -4,5 +4,12 @@ public class Batch : Base
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
     public Guid CourseId { get; set; }
-    public int Status { get; set; }
+    public StatusEnum Status { get; set; }
+}
+
+public enum StatusEnum
+{
+    Running,
+    Completed
+
 }
