@@ -29,15 +29,30 @@ public class BatchRepository : IBatchRepository
         throw new NotImplementedException();
     }
 
-    public Task<PaginatedResult<BatchListResponse>> GetAllBatches(BatchListQuery request)
+    public async Task<PaginatedResult<Batch>> GetAllBatches(BatchListQuery request)
     {
-        throw new NotImplementedException();
+        var totalCount = await _dbConnection.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM batch");
+        var query = "SELECT * FROM batch ORDER BY created_at DESC LIMIT @PageSize OFFSET @PageSize * (@Page - 1)";
+        var result = await _dbConnection.QueryAsync<Batch>(query, new { request.PageSize, request.Page });
+
+        return new PaginatedResult<Batch>
+        {
+            Items = result.ToList(),
+            Page = request.Page,
+            PageSize = request.PageSize,
+            TotalCount = totalCount,
+            TotalPages = (int)Math.Ceiling(totalCount / (double)request.PageSize)
+        };
     }
 
-    public Task<Batch> GetBatchById(Guid id)
+
+    public async Task<Batch> GetBatchById(Guid id)
     {
-        throw new NotImplementedException();
+        var query = "SELECT * FROM batch WHERE id = @Id";
+        var result = await _dbConnection.QuerySingleOrDefaultAsync<Batch>(query, new { Id = id });
+        return result!;
     }
+
 
     public Task<bool> UpdateBatch(Batch batch)
     {
