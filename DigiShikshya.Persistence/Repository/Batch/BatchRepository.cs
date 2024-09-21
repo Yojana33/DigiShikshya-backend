@@ -14,12 +14,12 @@ public class BatchRepository : IBatchRepository
 
     public async Task<bool> AddBatch(Batch batch)
     {
-        var query = "INSERT INTO batch (id, course_id, start_date, end_date, status, created_at) VALUES (@BatchId, @CourseId, @StartDate, @EndDate, @Status, @CreatedAt)";
+        var query = "INSERT INTO batch (id, start_date, end_date, status, created_at) VALUES (@BatchId, @StartDate, @EndDate, @Status, @CreatedAt)";
         await _dbConnection.ExecuteAsync(query, batch);
         return true;
     }
 
-    public Task<bool> BatchAlreadyExists(Guid courseId, DateTime startDate, DateTime endDate)
+    public Task<bool> BatchAlreadyExists( DateTime startDate, DateTime endDate)
     {
         throw new NotImplementedException();
     }
