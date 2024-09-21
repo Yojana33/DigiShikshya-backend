@@ -39,4 +39,19 @@ public class BatchController(IMediator mediator) : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An unexpected error occurred. Please try again later." });
         }
     }
+
+    [HttpPatch("update")]
+
+    public async Task<IActionResult> UpdateBatch(UpdateBatch request)
+    {
+        var response = await _mediator.Send(request);
+
+        return response.Status switch
+        {
+            "Success" => Ok(response),
+            "Bad Request" => BadRequest(response),
+            "Internal Server Error" => StatusCode(StatusCodes.Status500InternalServerError, response),
+            _ => StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.")
+        };
+    }
 }
