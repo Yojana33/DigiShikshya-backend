@@ -25,4 +25,18 @@ public class BatchController(IMediator mediator) : ControllerBase
             _ => StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.")
         };
     }
+
+    [HttpGet("all")]
+    public async Task<IActionResult> GetAllBatches([FromQuery] BatchListQuery request)
+    {
+        try
+        {
+            var response = await _mediator.Send(request);
+            return Ok(response);
+        }
+        catch (Exception)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An unexpected error occurred. Please try again later." });
+        }
+    }
 }
