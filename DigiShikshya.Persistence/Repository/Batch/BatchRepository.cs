@@ -26,9 +26,12 @@ public class BatchRepository : IBatchRepository
         throw new NotImplementedException();
     }
 
-    public Task<bool> DeleteBatch(Guid id)
+    public async Task<bool> DeleteBatch(Guid id)
     {
-        throw new NotImplementedException();
+        var query = "DELETE FROM batch WHERE id = @Id";
+        var result = await _dbConnection.ExecuteAsync(query, new { Id = id });
+        return result > 0;
+
     }
 
     public async Task<PaginatedResult<Batch>> GetAllBatches(BatchListQuery request)
