@@ -4,6 +4,8 @@ using Dapper;
 
 public class BatchRepository : IBatchRepository
 {
+
+
     private readonly IDbConnection _dbConnection;
 
     public BatchRepository(IDbConnection dbConnection)
@@ -19,7 +21,7 @@ public class BatchRepository : IBatchRepository
         return true;
     }
 
-    public Task<bool> BatchAlreadyExists( DateTime startDate, DateTime endDate)
+    public Task<bool> BatchAlreadyExists(DateTime startDate, DateTime endDate)
     {
         throw new NotImplementedException();
     }
@@ -54,8 +56,19 @@ public class BatchRepository : IBatchRepository
     }
 
 
-    public Task<bool> UpdateBatch(Batch batch)
+    public async Task<bool> UpdateBatch(Batch batch)
     {
-        throw new NotImplementedException();
+        var query = @"UPDATE batch 
+              SET start_date = @StartDate, 
+                  end_date = @EndDate, 
+                  status = @Status
+              WHERE id = @Id";
+        await _dbConnection.ExecuteScalarAsync<bool>(query, batch);
+        return true;
     }
+
+    // Task<bool> IBatchRepository.IsValidStatus(string status)
+    // {
+
+    // }
 }
