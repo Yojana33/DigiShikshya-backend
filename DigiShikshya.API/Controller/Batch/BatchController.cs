@@ -54,4 +54,19 @@ public class BatchController(IMediator mediator) : ControllerBase
             _ => StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.")
         };
     }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteBatch(Guid id)
+    {
+        var request = new DeleteBatch { Id = id };
+        var response = await _mediator.Send(request);
+
+        return response.Status switch
+        {
+            "Success" => Ok(response),
+            "Bad Request" => BadRequest(response),
+            "Internal Server Error" => StatusCode(StatusCodes.Status500InternalServerError, response),
+            _ => StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.")
+        };
+    }
 }
