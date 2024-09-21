@@ -27,7 +27,6 @@ public class AddNewBatchHandler(IBatchRepository batchRepository) : IRequestHand
         var batch = new Batch
         {
             BatchId = Guid.NewGuid(),  // Generate a new BatchId
-            CourseId = request.CourseId,
             StartDate = request.StartDate,
             EndDate = request.EndDate,
             Status = (StatusEnum)request.Status,  // Assuming Status is an enum

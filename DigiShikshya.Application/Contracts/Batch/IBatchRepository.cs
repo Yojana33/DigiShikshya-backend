@@ -5,5 +5,5 @@ public interface IBatchRepository
     Task<bool> AddBatch(Batch batch);
     Task<bool> UpdateBatch(Batch batch);
     Task<bool> DeleteBatch(Guid id);
-    Task<bool> BatchAlreadyExists(Guid courseId, DateTime startDate, DateTime endDate);
+    Task<bool> BatchAlreadyExists( DateTime startDate, DateTime endDate);
 }
