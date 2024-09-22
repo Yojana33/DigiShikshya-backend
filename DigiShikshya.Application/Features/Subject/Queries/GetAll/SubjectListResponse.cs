@@ -1,7 +1,8 @@
 public class SubjectListResponse
 {
     public Guid Id { get; set; }
-    public Guid CourseSemesterId { get; set; }
+    public Guid SemesterId { get; set; }
+    public Guid BatchId { get; set; }
     public string? CourseName { get; set; }
     public string? SemesterName { get; set; }
     public string? SubjectName { get; set; }

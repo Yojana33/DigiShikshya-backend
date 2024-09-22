@@ -44,7 +44,8 @@ public class AddNewSubjectHandler : IRequestHandler<AddNewSubject, AddNewSubject
             SubjectCode = request.SubjectCode,
             SubjectDescription = request.SubjectDescription,
             CreditHour = request.CreditHour,
-            CourseSemesterId = request.CourseSemesterId,
+            SemesterId = request.SemesterId,
+            BatchId = request.BatchId
         };
 
         var success = await _subjectRepository.AddSubject(subject);

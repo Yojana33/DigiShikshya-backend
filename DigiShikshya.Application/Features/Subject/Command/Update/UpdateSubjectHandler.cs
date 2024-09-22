@@ -50,7 +50,8 @@ public class UpdateSubjectHandler(ISubjectRepository _subjectRepository) : IRequ
         var existingSubject = new Subject
         {
             Id = existingSubjectResponse.Id,
-            CourseSemesterId = existingSubjectResponse.CourseSemesterId,
+            SemesterId = existingSubjectResponse.SemesterId,
+            BatchId = existingSubjectResponse.BatchId,
             SubjectName = existingSubjectResponse.SubjectName,
             SubjectCode = existingSubjectResponse.SubjectCode,
             SubjectDescription = existingSubjectResponse.SubjectDescription,
@@ -60,7 +61,8 @@ public class UpdateSubjectHandler(ISubjectRepository _subjectRepository) : IRequ
         };
 
         // Apply updates to the existingSubject entity
-        existingSubject.CourseSemesterId = request.NewCourseSemesterId != Guid.Empty ? request.NewCourseSemesterId : existingSubject.CourseSemesterId;
+        existingSubject.SemesterId = request.NewSemesterId != Guid.Empty ? request.NewSemesterId : existingSubject.SemesterId;
+        existingSubject.BatchId = request.NewBatchId != Guid.Empty ? request.NewBatchId : existingSubject.BatchId;
         existingSubject.SubjectName = request.NewSubjectName ?? existingSubject.SubjectName;
         existingSubject.SubjectCode = request.NewSubjectCode ?? existingSubject.SubjectCode;
         existingSubject.SubjectDescription = request.NewSubjectDescription ?? existingSubject.SubjectDescription;
