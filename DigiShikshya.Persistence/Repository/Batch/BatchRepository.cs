@@ -21,9 +21,15 @@ public class BatchRepository : IBatchRepository
         return true;
     }
 
-    public Task<bool> BatchAlreadyExists(DateTime startDate, DateTime endDate)
+    public async Task<bool> BatchAlreadyExists(DateTime startDate, DateTime endDate)
     {
-        throw new NotImplementedException();
+        var query = @"SELECT COUNT(1) 
+                  FROM batch 
+                  WHERE start_date = @StartDate AND end_date = @EndDate";
+
+        var result = await _dbConnection.ExecuteScalarAsync<int>(query, new { StartDate = startDate, EndDate = endDate });
+
+        return result > 0;
     }
 
     public async Task<bool> DeleteBatch(Guid id)
