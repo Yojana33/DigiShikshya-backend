@@ -6,7 +6,7 @@ public class AddNewSubjectValidator : AbstractValidator<AddNewSubject>
     {
         RuleFor(x => x.SubjectName)
         .NotEmpty().WithMessage("Semester name is required").WithErrorCode("400");
-        
+
         RuleFor(x => x.SubjectCode)
         .NotEmpty().WithMessage("Subject code is required").WithErrorCode("400");
 
@@ -17,6 +17,12 @@ public class AddNewSubjectValidator : AbstractValidator<AddNewSubject>
         RuleFor(x => x.SubjectDescription)
         .NotEmpty().WithMessage("Description is required").WithErrorCode("400")
         .MaximumLength(100).WithMessage("Description must not exceed 100 characters").WithErrorCode("400");
+
+        RuleFor(x => x.SemesterId)
+        .NotEmpty().WithMessage("Semester is required").WithErrorCode("400");
+
+        RuleFor(x => x.BatchId)
+        .NotEmpty().WithMessage("Batch is required").WithErrorCode("400");
 
 
     }
