@@ -23,9 +23,13 @@ public class MaterialRepository : IMaterialRepository
         return true;
     }
 
-    public Task<bool> DeleteMaterial(Guid id)
+    public async Task<bool> DeleteMaterial(Guid id)
     {
-        throw new NotImplementedException();
+        var query = "DELETE FROM material WHERE id = @Id";
+
+        var result = await _dbConnection.ExecuteAsync(query, new { Id = id });
+
+        return result > 0;
     }
 
     public Task<PaginatedResult<MaterialListResponse>> GetAllMaterials(MaterialListQuery request)
