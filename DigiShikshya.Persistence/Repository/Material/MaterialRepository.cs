@@ -42,8 +42,22 @@ public class MaterialRepository : IMaterialRepository
         throw new NotImplementedException();
     }
 
-    public Task<bool> UpdateMaterial(Material material)
+    public async Task<bool> UpdateMaterial(Material material)
     {
-        throw new NotImplementedException();
+        var query = @"
+        UPDATE material 
+        SET 
+            subject_id = @SubjectId, 
+            title = @Title, 
+            description = @Description, 
+            content_type = @ContentType, 
+            content = @Content,
+            upload_date = @UploadDate,
+            uploaded_by = @UploadedBy,
+            updated_at = @UpdatedAt 
+        WHERE id = @Id";
+
+        var result = await _dbConnection.ExecuteAsync(query, material);
+        return result > 0;
     }
 }
