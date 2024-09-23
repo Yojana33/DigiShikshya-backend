@@ -13,7 +13,7 @@ public class SubjectRepository : ISubjectRepository
 
     public async Task<bool> AddSubject(Subject subject)
     {
-        var query = "INSERT INTO subject (id, subject_name, subject_code, subject_description, credit_hour, course_semester_id, created_at) VALUES (@Id, @SubjectName, @SubjectCode, @SubjectDescription, @CreditHour, @CourseSemesterId, @CreatedAt)";
+        var query = "INSERT INTO subject (id, subject_name, subject_code, subject_description, credit_hour, semester_id, batch_id, created_at) VALUES (@Id, @SubjectName, @SubjectCode, @SubjectDescription, @CreditHour, @SemesterId, @BatchId, @CreatedAt)";
         await _dbConnection.ExecuteScalarAsync<bool>(query, subject);
 
         return true;
@@ -25,16 +25,24 @@ public class SubjectRepository : ISubjectRepository
         var totalCount = await _dbConnection.ExecuteScalarAsync<int>(totalCountQuery);
 
         var query = @"
-    SELECT s.id AS Id, s.subject_name AS SubjectName, s.subject_code AS SubjectCode, 
-           s.subject_description AS SubjectDescription, s.credit_hour AS CreditHour, 
-           cs.id AS CourseSemesterId,  -- Include course_semester_id
+    SELECT s.id AS Id, 
+           s.subject_name AS SubjectName, 
+           s.subject_code AS SubjectCode, 
+           s.subject_description AS SubjectDescription, 
+           s.credit_hour AS CreditHour, 
+           sem.id AS SemesterId, 
            sem.semester_name AS SemesterName, 
+           b.id AS BatchId, 
+           b.start_date AS BatchStartDate, 
+           b.end_date AS BatchEndDate,
+           b.status AS BatchStatus,
            c.course_name AS CourseName, 
-           s.created_at AS CreatedAt, s.updated_at AS UpdatedAt 
+           s.created_at AS CreatedAt, 
+           s.updated_at AS UpdatedAt 
     FROM subject s
-    INNER JOIN course_semester cs ON s.course_semester_id = cs.id
-    INNER JOIN semester sem ON cs.semester_id = sem.id
-    INNER JOIN course c ON cs.course_id = c.id
+    INNER JOIN batch b ON s.batch_id = b.id  -- Join with batch table
+    INNER JOIN semester sem ON b.semester_id = sem.id  -- Join with semester table
+    INNER JOIN course c ON sem.course_id = c.id  -- Join with course table via semester
     ORDER BY s.created_at DESC 
     OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
@@ -55,24 +63,34 @@ public class SubjectRepository : ISubjectRepository
     }
 
 
+
     public async Task<SubjectListResponse> GetSubjectById(Guid id)
     {
         var query = @"
-    SELECT s.id AS Id, s.subject_name AS SubjectName, s.subject_code AS SubjectCode, 
-           s.subject_description AS SubjectDescription, s.credit_hour AS CreditHour, 
-           cs.id AS CourseSemesterId,  -- Include course_semester_id
+    SELECT s.id AS Id, 
+           s.subject_name AS SubjectName, 
+           s.subject_code AS SubjectCode, 
+           s.subject_description AS SubjectDescription, 
+           s.credit_hour AS CreditHour, 
+           sem.id AS SemesterId, 
            sem.semester_name AS SemesterName, 
+           b.id AS BatchId, 
+           b.start_date AS BatchStartDate, 
+           b.end_date AS BatchEndDate,
+           b.status AS BatchStatus,
            c.course_name AS CourseName, 
-           s.created_at AS CreatedAt, s.updated_at AS UpdatedAt 
+           s.created_at AS CreatedAt, 
+           s.updated_at AS UpdatedAt 
     FROM subject s
-    INNER JOIN course_semester cs ON s.course_semester_id = cs.id
-    INNER JOIN semester sem ON cs.semester_id = sem.id
-    INNER JOIN course c ON cs.course_id = c.id
+    INNER JOIN batch b ON s.batch_id = b.id  -- Join with batch table
+    INNER JOIN semester sem ON b.semester_id = sem.id  -- Join with semester table
+    INNER JOIN course c ON sem.course_id = c.id  -- Join with course table via semester
     WHERE s.id = @Id";
 
         var result = await _dbConnection.QuerySingleOrDefaultAsync<SubjectListResponse>(query, new { Id = id });
         return result!;
     }
+
 
     //
 
@@ -86,7 +104,8 @@ public class SubjectRepository : ISubjectRepository
             subject_code = @SubjectCode, 
             subject_description = @SubjectDescription, 
             credit_hour = @CreditHour, 
-            course_semester_id = @CourseSemesterId, 
+            semester_id = @SemesterId,
+            batch_id = @BatchId, 
             updated_at = @UpdatedAt 
         WHERE id = @Id";
 

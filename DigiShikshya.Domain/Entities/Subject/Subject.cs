@@ -1,6 +1,7 @@
-public class Subject: Base
+public class Subject : Base
 {
-    public Guid CourseSemesterId { get; set; }
+    public Guid SemesterId { get; set; }
+    public Guid BatchId { get; set; }
     public string? SubjectName { get; set; }
     public string? SubjectCode { get; set; }
     public string? SubjectDescription { get; set; }
