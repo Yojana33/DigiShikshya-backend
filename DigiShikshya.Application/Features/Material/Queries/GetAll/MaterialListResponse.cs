@@ -10,5 +10,9 @@ public class MaterialListResponse
     public DateTime UpdatedAt { get; set; }
     public string? CreatedBy { get; set; }
     public string? UpdatedBy { get; set; }
+    public string? SubjectName { get; set; } 
+    public string? BatchName { get; set; }   
+    public string? SemesterName { get; set; }
+    public string? CourseName { get; set; }
     public bool IsActive { get; set; }
 }
