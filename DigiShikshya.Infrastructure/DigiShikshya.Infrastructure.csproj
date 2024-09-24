@@ -14,5 +14,9 @@
     <ProjectReference Include="..\DigiShikshya.Application\DigiShikshya.Application.csproj" />
   </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="Microsoft.AspNetCore.SignalR.Common" Version="9.0.0-rc.1.24452.1" />
+    </ItemGroup>
+
    
 </Project>
