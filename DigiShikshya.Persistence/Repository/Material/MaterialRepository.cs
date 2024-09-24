@@ -126,4 +126,17 @@ public class MaterialRepository : IMaterialRepository
         var result = await _dbConnection.ExecuteAsync(query, material);
         return result > 0;
     }
+
+    public async Task<byte[]> GetVideoContentById(Guid id)
+    {
+        var query = "SELECT content, content_type FROM material WHERE id = @Id";
+        var result = await _dbConnection.QuerySingleOrDefaultAsync(query, new { Id = id });
+
+        if (result != null && result!.content_type == "video")
+        {
+            return result!.content;
+        }
+
+        return [];
+    }
 }
