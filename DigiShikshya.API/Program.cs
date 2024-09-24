@@ -21,7 +21,7 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<Program>());
 builder.Services.AddApplicationServices();
 builder.Services.AddPersistenceServices(connectionString!);
-
+builder.Services.AddInfrastructureServices();
 builder.Logging.ClearProviders();
 
 builder.Logging.AddConsole();
