@@ -32,7 +32,7 @@ public class MaterialRepository : IMaterialRepository
         return result > 0;
     }
 
-    public async Task<PaginatedResult<MaterialListResponse>> GetAllMaterials(MaterialListQuery request)
+    public async Task<PaginatedResult<Material>> GetAllMaterials(MaterialListQuery request)
     {
         var totalCountQuery = "SELECT COUNT(*) FROM material";
         var totalCount = await _dbConnection.ExecuteScalarAsync<int>(totalCountQuery);
@@ -60,13 +60,13 @@ public class MaterialRepository : IMaterialRepository
         ORDER BY m.created_at DESC 
         OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
-        var result = await _dbConnection.QueryAsync<MaterialListResponse>(query, new
+        var result = await _dbConnection.QueryAsync<Material>(query, new
         {
             Offset = (request.Page - 1) * request.PageSize,
             PageSize = request.PageSize
         });
 
-        return new PaginatedResult<MaterialListResponse>
+        return new PaginatedResult<Material>
         {
             Items = result.ToList(),
             Page = request.Page,
@@ -78,7 +78,7 @@ public class MaterialRepository : IMaterialRepository
 
 
 
-    public async Task<MaterialListResponse> GetMaterialById(Guid id)
+    public async Task<Material> GetMaterialById(Guid id)
     {
         var query = @"
         SELECT m.id AS Id,
@@ -102,7 +102,7 @@ public class MaterialRepository : IMaterialRepository
         INNER JOIN course c ON sem.course_id = c.id
         WHERE m.id = @Id";
 
-        var result = await _dbConnection.QuerySingleOrDefaultAsync<MaterialListResponse>(query, new { Id = id });
+        var result = await _dbConnection.QuerySingleOrDefaultAsync<Material>(query, new { Id = id });
 
         return result!;
     }
