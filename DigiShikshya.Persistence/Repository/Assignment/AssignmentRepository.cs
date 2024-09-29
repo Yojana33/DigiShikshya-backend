@@ -17,8 +17,8 @@ public class AssignmentRepository : IAssignmentRepository
     public async Task<bool> AddAssignment(Assignment assignment)
     {
         var query = @"
-            INSERT INTO assignments (id, title, description, due_date, subject_id, created_at) 
-            VALUES (@Id, @Title, @Description, @DueDate, @SubjectId, @CreatedAt)";
+            INSERT INTO assignments (id, title, description, due_date, subject_id, teacher_id, created_at) 
+            VALUES (@Id, @Title, @Description, @DueDate, @SubjectId, @TeacherId, @CreatedAt)";
 
         await _dbConnection.ExecuteAsync(query, assignment);
         return true;
@@ -40,12 +40,15 @@ public class AssignmentRepository : IAssignmentRepository
                    b.start_date AS BatchStartDate, 
                    sem.semester_name AS SemesterName, 
                    c.course_name AS CourseName, 
+                   a.teacher_id AS TeacherId, 
+                   u.first_name || ' ' || u.last_name AS TeacherName,
                    a.created_at AS CreatedAt 
             FROM assignments a
             INNER JOIN subjects s ON a.subject_id = s.id  
             INNER JOIN batch b ON s.batch_id = b.id  -- Join with batch table
             INNER JOIN semester sem ON b.semester_id = sem.id  -- Join with semester table
             INNER JOIN course c ON sem.course_id = c.id  -- Join with course table via semester
+            LEFT JOIN userprofile u ON a.teacher_id = u.user_id
             ORDER BY a.created_at DESC 
             OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
@@ -78,12 +81,15 @@ public class AssignmentRepository : IAssignmentRepository
                    b.start_date AS BatchStartDate, 
                    sem.semester_name AS SemesterName, 
                    c.course_name AS CourseName, 
+                   a.teacher_id AS TeacherId, 
+                   u.first_name || ' ' || u.last_name AS TeacherName,
                    a.created_at AS CreatedAt 
             FROM assignments a
             INNER JOIN subjects s ON a.subject_id = s.id  
             INNER JOIN batch b ON s.batch_id = b.id  -- Join with batch table
             INNER JOIN semester sem ON b.semester_id = sem.id  -- Join with semester table
             INNER JOIN course c ON sem.course_id = c.id  -- Join with course table via semester
+            LEFT JOIN userprofile u ON a.teacher_id = u.user_id
             WHERE a.id = @Id";
 
         var result = await _dbConnection.QuerySingleOrDefaultAsync<Assignment>(query, new { Id = id });
@@ -98,7 +104,8 @@ public class AssignmentRepository : IAssignmentRepository
                 title = @Title, 
                 description = @Description, 
                 due_date = @DueDate, 
-                subject_id = @SubjectId, 
+                subject_id = @SubjectId,
+                teacher_id = @TeacherId, 
                 updated_at = @UpdatedAt 
             WHERE id = @Id";
 
