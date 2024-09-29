@@ -15,6 +15,7 @@ class AssignmentListHandler(IAssignmentRepository _assignmentRepository) : IRequ
             {
                 Id = assignment.Id,
                 SubjectId = assignment.SubjectId,
+                TeacherId = assignment.TeacherId,
                 Title = assignment.Title,
                 Description = assignment.Description,
                 DueDate = assignment.DueDate,
