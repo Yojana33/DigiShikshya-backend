@@ -7,6 +7,9 @@ public class AddNewAssignmentValidator : AbstractValidator<AddNewAssignment>
         RuleFor(x => x.SubjectId)
             .NotEmpty().WithMessage("Subject is required").WithErrorCode("400");
 
+        RuleFor(x => x.TeacherId)
+            .NotEmpty().WithMessage("Teacher is required").WithErrorCode("400");
+
         RuleFor(x => x.Title)
             .NotEmpty().WithMessage("Title is required").WithErrorCode("400")
             .MaximumLength(255).WithMessage("Title must not exceed 255 characters").WithErrorCode("400");
