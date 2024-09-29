@@ -23,6 +23,7 @@ public class AddNewAssignmentHandler(IAssignmentRepository _assignmentRepository
         var assignment = new Assignment
         {
             SubjectId = request.SubjectId,
+            TeacherId = request.TeacherId,
             Title = request.Title,
             Description = request.Description,
             DueDate = request.DueDate,
