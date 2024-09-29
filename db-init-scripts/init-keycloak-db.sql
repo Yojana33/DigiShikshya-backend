@@ -1,0 +1,7 @@
+CREATE DATABASE keycloak;
+
+GRANT ALL PRIVILEGES ON DATABASE keycloak TO postgres;
+
+
+CREATE DATABASE digishikshya;
+GRANT ALL PRIVILEGES ON DATABASE digishikshya TO postgres;
