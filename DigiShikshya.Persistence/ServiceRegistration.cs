@@ -20,6 +20,7 @@ public static class ServiceRegistration
         services.AddScoped<ISubjectRepository, SubjectRepository>();
         services.AddScoped<IBatchRepository, BatchRepository>();
         services.AddScoped<IAssignmentRepository, AssignmentRepository>();
+        services.AddScoped<ISubmissionRepository, SubmissionRepository>();
     }
 }
 
