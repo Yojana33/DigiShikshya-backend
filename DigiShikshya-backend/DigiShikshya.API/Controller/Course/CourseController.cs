@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 [Route("api/v1/course")]
 public class CourseController(IMediator _mediator) : ControllerBase
 {
-    [Authorize(Roles = "admin")]
+    [Authorize(Policy = "AdminPolicy")]
     [HttpPost("add")]
     public async Task<IActionResult> AddCourse([FromBody] AddNewCourse request)
     {
@@ -23,6 +23,8 @@ public class CourseController(IMediator _mediator) : ControllerBase
     }
     
     [HttpGet("all")]
+    [Authorize(Policy = "StudentPolicy")]
+
     public async Task<IActionResult> GetAllCourses([FromQuery] CourseListQuery request)
     {
         try
