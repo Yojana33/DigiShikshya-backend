@@ -23,14 +23,13 @@ public class SubjectRepository : ISubjectRepository
     {
         var totalCountQuery = "SELECT COUNT(*) FROM subject";
         var totalCount = await _dbConnection.ExecuteScalarAsync<int>(totalCountQuery);
-
         var query = @"
     SELECT s.id AS Id, 
            s.subject_name AS SubjectName, 
            s.subject_code AS SubjectCode, 
            s.subject_description AS SubjectDescription, 
            s.credit_hour AS CreditHour, 
-           sem.id AS SemesterId, 
+           s.semester_id AS SemesterId,  -- Corrected reference
            sem.semester_name AS SemesterName, 
            b.id AS BatchId, 
            b.start_date AS BatchStartDate, 
@@ -41,7 +40,7 @@ public class SubjectRepository : ISubjectRepository
            s.updated_at AS UpdatedAt 
     FROM subject s
     INNER JOIN batch b ON s.batch_id = b.id  -- Join with batch table
-    INNER JOIN semester sem ON b.semester_id = sem.id  -- Join with semester table
+    INNER JOIN semester sem ON s.semester_id = sem.id  -- Corrected join with semester table
     INNER JOIN course c ON sem.course_id = c.id  -- Join with course table via semester
     ORDER BY s.created_at DESC 
     OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";

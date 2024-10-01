@@ -21,7 +21,7 @@ public class CourseController(IMediator _mediator) : ControllerBase
             _ => StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.")
         };
     }
-    
+
     [HttpGet("all")]
     [Authorize(Policy = "StudentPolicy")]
 

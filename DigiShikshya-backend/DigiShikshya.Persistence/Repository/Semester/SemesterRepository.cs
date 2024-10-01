@@ -1,6 +1,4 @@
-
 using System.Data;
-
 using Dapper;
 
 public class SemesterRepository : ISemesterRepository
@@ -12,20 +10,14 @@ public class SemesterRepository : ISemesterRepository
         _dbConnection = dbConnection;
         Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
     }
- 
-
 
     public async Task<bool> AddSemester(Semester semester)
     {
-        var semesterQuery = @"INSERt INTO semester 
+        var semesterQuery = @"INSERT INTO semester 
                               (id, semester_name, course_id, start_date, end_date, created_at) 
                               VALUES 
                               (@Id, @SemesterName, @CourseId, @StartDate, @EndDate, @CreatedAt)";
 
-        var courseSemesterQuery = @"INSERT INTO course_semester 
-                                    (id, course_id, semester_id, created_at) 
-                                    VALUES 
-                                    (@Id, @CourseId, @SemesterId, @CreatedAt)";
         _dbConnection.Open();
         using var transaction = _dbConnection.BeginTransaction();
         try
@@ -46,29 +38,7 @@ public class SemesterRepository : ISemesterRepository
                 throw new Exception("Failed to insert into semester table.");
             }
 
-            // Insert into the course_semester table
-            var courseSemester = new CourseSemester
-            {
-                Id = Guid.NewGuid(),
-                CourseId = semester.CourseId,
-                SemesterId = semester.Id,
-                CreatedAt = semester.CreatedAt
-            };
-
-            var courseSemesterResult = await _dbConnection.ExecuteAsync(courseSemesterQuery, new
-            {
-                courseSemester.Id,
-                courseSemester.CourseId,
-                courseSemester.SemesterId,
-                courseSemester.CreatedAt
-            }, transaction);
-
-            if (courseSemesterResult <= 0)
-            {
-                throw new Exception("Failed to insert into course_semester table.");
-            }
-
-            // Commit the transaction if both inserts succeed
+            // Commit the transaction if the insert succeeds
             transaction.Commit();
             return true;
         }
@@ -116,7 +86,6 @@ public class SemesterRepository : ISemesterRepository
         };
     }
 
-
     public async Task<Semester> GetSemesterById(Guid id)
     {
         var query = @"
@@ -139,12 +108,6 @@ public class SemesterRepository : ISemesterRepository
                               updated_at = @UpdatedAt
                           WHERE id = @Id";
 
-        var courseSemesterQuery = @"UPDATE course_semester 
-                                SET course_id = @CourseId, 
-                                    semester_id = @SemesterId, 
-                                    created_at = @CreatedAt
-                                WHERE semester_id = @SemesterId";
-
         _dbConnection.Open();
         using var transaction = _dbConnection.BeginTransaction();
         try
@@ -165,20 +128,7 @@ public class SemesterRepository : ISemesterRepository
                 throw new Exception("Failed to update the semester table.");
             }
 
-            // Update the course_semester table
-            var courseSemesterResult = await _dbConnection.ExecuteAsync(courseSemesterQuery, new
-            {
-                CourseId = semester.CourseId,
-                SemesterId = semester.Id,
-                CreatedAt = semester.CreatedAt // Assuming this stays the same
-            }, transaction);
-
-            if (courseSemesterResult <= 0)
-            {
-                throw new Exception("Failed to update the course_semester table.");
-            }
-
-            // Commit the transaction if both updates succeed
+            // Commit the transaction if the update succeeds
             transaction.Commit();
             return true;
         }
@@ -191,19 +141,10 @@ public class SemesterRepository : ISemesterRepository
         }
     }
 
-
     public async Task<bool> SemesterAlreadyExists(string semesterName)
     {
         var query = "SELECT COUNT(*) FROM semester WHERE semester_name = @SemesterName";
         var count = await _dbConnection.ExecuteScalarAsync<int>(query, new { SemesterName = semesterName });
         return count > 0;
     }
-}
-
-internal class CourseSemester
-{
-    public Guid Id { get; set; }
-    public Guid CourseId { get; set; }
-    public Guid SemesterId { get; set; }
-    public DateTime CreatedAt { get; set; }
 }
