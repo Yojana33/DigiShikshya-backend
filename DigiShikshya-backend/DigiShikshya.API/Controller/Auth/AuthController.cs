@@ -15,15 +15,27 @@ public class AuthController:ControllerBase
     {
         var token = await _authService.AuthenticateAsync(loginRequest.Username, loginRequest.Password);
 
-        if (token == null)
+       if(token.Item1 == null && token.Item2 == null)
         {
             return Unauthorized();
         }
 
-        var userData = JwtTokenHelper.GetTokenInfo(token);
+        var userData = JwtTokenHelper.GetTokenInfo(token.Item1!);
         await _authService.RegisterAsync(userData.Id!);
+          Response.Cookies.Append("AccessToken", token.Item1, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true, // Set to true in production
+            SameSite = SameSiteMode.Strict
+        });
 
-        return Ok(new { Token = token, Info = userData });
+        Response.Cookies.Append("RefreshToken", token.Item2, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true, // Set to true in production
+            SameSite = SameSiteMode.Strict
+        });
+        return Ok(new { AccessToken = token.Item1, RefereshToken= token.Item2, Info = userData });
     }
     
 }

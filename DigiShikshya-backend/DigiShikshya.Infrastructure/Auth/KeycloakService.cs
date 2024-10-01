@@ -19,7 +19,7 @@ public class KeycloakService: IKeyClaokService
 
     }
 
-    public async Task<string?> AuthenticateAsync(string username, string password)
+    public async Task<(string, string)> AuthenticateAsync(string username, string password)
     {
         var keycloakSettings = _configuration.GetSection("KeyCloak");
 
@@ -32,7 +32,7 @@ public class KeycloakService: IKeyClaokService
 
         if (!response.IsSuccessStatusCode)
         {
-            return null;
+            return (null, null);
         }
 
         var responseContent = await response.Content.ReadAsStringAsync();
@@ -40,11 +40,11 @@ public class KeycloakService: IKeyClaokService
         try
         {
             var tokenResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
-            return tokenResponse.GetProperty("access_token").GetString();
+            return (tokenResponse.GetProperty("access_token").GetString(), tokenResponse.GetProperty("refresh_token").GetString());
         }
         catch (JsonException)
         {
-            return null;
+            throw;
         }
     }
 
