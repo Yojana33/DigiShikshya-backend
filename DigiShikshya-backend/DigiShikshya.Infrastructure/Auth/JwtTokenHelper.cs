@@ -1,9 +1,9 @@
 using System.IdentityModel.Tokens.Jwt;
-
+using System.Linq;
 
 public static class JwtTokenHelper
 {
-    private static readonly char[] separator = ['[', ']', '"', ','];
+    private static readonly char[] separator = { '[', ']', '"', ',' };
 
     public static TokenInfo GetTokenInfo(string token)
     {
@@ -22,11 +22,19 @@ public static class JwtTokenHelper
         var email = jwtToken.Claims
             .FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Email)?.Value;
 
-        var roles = jwtToken.Claims
-            .Where(c => c.Type == "resource_access" && c.Value.Contains("digishiksya-backend"))
+        var realmRoles = jwtToken.Claims
+            .Where(c => c.Type == "realm_access")
             .SelectMany(c => c.Value.Split(separator, StringSplitOptions.RemoveEmptyEntries))
-            .Where(r => r != "roles" && r != "digishiksya-backend")
+            .Where(r => r != "roles" && r != "realm_access")
             .ToArray();
+
+        var resourceRoles = jwtToken.Claims
+            .Where(c => c.Type == "resource_access")
+            .SelectMany(c => c.Value.Split(separator, StringSplitOptions.RemoveEmptyEntries))
+            .Where(r => r != "roles" && r != "resource_access")
+            .ToArray();
+
+        var roles = realmRoles.Concat(resourceRoles).ToArray();
 
         return new TokenInfo
         {

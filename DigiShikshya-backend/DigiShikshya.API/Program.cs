@@ -4,6 +4,7 @@ using DigiShikshya.Infrastructure.Hubs;
 using DigiShikshya.Infrastructure.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,38 +28,55 @@ if (string.IsNullOrEmpty(connectionString))
 // --------------------
 builder.Services.AddControllers();
 
+// Authentication Configuration
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        options.Authority = "http://localhost:8080/auth/realms/digishikshya";
-        options.Audience = "digishiksya-backend";
+        options.Authority = "http://keycloak:8080/realms/digishikshya";
+        options.Audience = "account"; // Update this to match the token's `aud` claim
         options.RequireHttpsMetadata = false;
 
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
-            ValidIssuer = "http://localhost:8080/auth/realms/digishikshya",
+            ValidIssuer = "http://keycloak:8080/realms/digishikshya",
             ValidateAudience = true,
-            ValidAudience = "digishiksya-backend",
+            ValidAudience = "account", // Update this to match the token's `aud` claim
             ValidateLifetime = true,
             RoleClaimType = ClaimTypes.Role
         };
 
         options.Events = new JwtBearerEvents
         {
+            OnAuthenticationFailed = context =>
+            {
+                Console.WriteLine("Authentication failed: " + context.Exception.Message);
+                return Task.CompletedTask;
+            },
             OnTokenValidated = context =>
             {
+                Console.WriteLine("Token validated: " + context.SecurityToken);
                 if (context.Principal?.Identity is ClaimsIdentity claimsIdentity)
                 {
+                    var realmAccess = context.Principal.FindFirst("realm_access")?.Value;
                     var resourceAccess = context.Principal.FindFirst("resource_access")?.Value;
+
+                    if (realmAccess != null)
+                    {
+                        var realmRoles = System.Text.Json.JsonDocument.Parse(realmAccess)
+                            .RootElement.GetProperty("roles")
+                            .EnumerateArray()
+                            .Select(role => new Claim(ClaimTypes.Role, role.GetString()));
+                        claimsIdentity.AddClaims(realmRoles);
+                    }
 
                     if (resourceAccess != null)
                     {
-                        var resourceRoles = Newtonsoft.Json.Linq.JObject.Parse(resourceAccess)
-                            .SelectTokens("$.digishiksya-backend.roles")
-                            .SelectMany(roles => roles)
-                            .Select(role => new Claim(ClaimTypes.Role, role.ToString()));
-
+                        var resourceRoles = System.Text.Json.JsonDocument.Parse(resourceAccess)
+                            .RootElement
+                            .EnumerateObject()
+                            .SelectMany(prop => prop.Value.GetProperty("roles").EnumerateArray())
+                            .Select(role => new Claim(ClaimTypes.Role, role.GetString()));
                         claimsIdentity.AddClaims(resourceRoles);
                     }
                 }
@@ -68,32 +86,60 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+// Authorization Configuration
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminPolicy", policy => policy.RequireRole("Admin"));
     options.AddPolicy("TeacherPolicy", policy => policy.RequireRole("Teacher"));
     options.AddPolicy("StudentPolicy", policy => policy.RequireRole("Student"));
 });
+
+// Swagger Configuration
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new() { Title = "DigiShikshya.API", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "DigiShikshya.API", Version = "v1" });
+
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header using the Bearer scheme. Example: \"Bearer {token}\"",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer"
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference 
+                { 
+                    Type = ReferenceType.SecurityScheme, 
+                    Id = "Bearer" 
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
 });
+
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<Program>());
 builder.Services.AddApplicationServices();
 builder.Services.AddPersistenceServices(connectionString!);
-builder.Services.AddInfrastructureServices();
+builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
+builder.Logging.AddDebug(); // Enable detailed logging
 
 // --------------------
 // Database Migration Section
 // --------------------
-// Ensure the database exists
 var upgrader = DeployChanges.To
-    .PostgresqlDatabase(connectionString) // Connection string for the PostgreSQL database
-    .WithScriptsFromFileSystem("/app/Migration") // Adjust the path to match the Docker container structure
-    .LogToConsole() // Log migration progress to console
-    .Build(); // Build the upgrader object
+    .PostgresqlDatabase(connectionString)
+    .WithScriptsFromFileSystem("/app/Migration")
+    .LogToConsole()
+    .Build();
 
 var result = upgrader.PerformUpgrade();
 
@@ -102,7 +148,7 @@ if (!result.Successful)
     Console.ForegroundColor = ConsoleColor.Red;
     Console.WriteLine(result.Error);
     Console.ResetColor();
-    Environment.Exit(1); // Exit if migration fails
+    Environment.Exit(1);
 }
 else
 {
@@ -135,7 +181,29 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseAuthentication(); // Ensure authentication middleware is added
 app.UseAuthorization();
+
+// Optional: Middleware to check token expiration
+app.Use(async (context, next) =>
+{
+    if (context.User.Identity.IsAuthenticated)
+    {
+        var expClaim = context.User.FindFirst("exp")?.Value;
+        if (expClaim != null && long.TryParse(expClaim, out var exp))
+        {
+            var expirationTime = DateTimeOffset.FromUnixTimeSeconds(exp);
+            if (expirationTime < DateTimeOffset.UtcNow)
+            {
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                await context.Response.WriteAsync("Token has expired.");
+                return;
+            }
+        }
+    }
+
+    await next();
+});
 
 // --------------------
 // Endpoint Mapping Section

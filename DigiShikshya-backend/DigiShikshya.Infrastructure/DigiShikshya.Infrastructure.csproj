@@ -12,6 +12,8 @@
     <ItemGroup>
     <ProjectReference Include="..\DigiShikshya.Domain\DigiShikshya.Domain.csproj" />
     <ProjectReference Include="..\DigiShikshya.Application\DigiShikshya.Application.csproj" />
+        <ProjectReference Include="..\DigiShikshya.Persistence\DigiShikshya.Persistence.csproj" />
+
   </ItemGroup>
 
     <ItemGroup>
