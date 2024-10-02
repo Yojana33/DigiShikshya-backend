@@ -124,6 +124,18 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend",
+                builder =>
+                {
+                    builder.WithOrigins("http://localhost:3000")
+                           .AllowAnyHeader()
+                           .AllowAnyMethod()
+                           .AllowCredentials();
+                });
+});
+
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<Program>());
 builder.Services.AddApplicationServices();
 builder.Services.AddPersistenceServices(connectionString!);
@@ -161,6 +173,9 @@ else
 // Application Setup Section
 // --------------------
 var app = builder.Build();
+
+
+app.UseCors("AllowFrontend");
 
 // --------------------
 // Middleware Configuration Section
