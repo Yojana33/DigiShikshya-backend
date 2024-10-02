@@ -11,15 +11,15 @@ import { Bell, Menu, Camera, Mail, Phone, User, Calendar, BookOpen, MapPin } fro
 
 // Mock data - replace with actual data fetching
 const initialProfileData = {
-  name: "John Doe",
-  email: "john.doe@example.com",
-  phone: "+1 234 567 8900",
+  name: "Test",
+  email: "test@example.com",
+  phone: "9812345678",
   batch: "2023",
-  course: "Computer Science",
+  course: "BCA",
   semester: "3rd Semester",
-  address: "123 Student Lane, College Town, ST 12345",
+  address: "Biratnagar",
   dateOfBirth: "May 15, 2005",
-  avatarUrl: "https://github.com/shadcn.png"
+  avatarUrl: ""
 }
 
 export default function ProfilePage() {

@@ -22,9 +22,9 @@ const teachers = [
 // Mock data for initial messages
 const initialMessages = [
   { id: 1, senderId: 'teacher', content: "Hello! How can I help you with Mathematics today?", timestamp: "2023-06-15T10:30:00Z" },
-  { id: 2, senderId: 'student', content: "Hi Ms. Johnson, I'm having trouble with quadratic equations.", timestamp: "2023-06-15T10:31:00Z" },
-  { id: 3, senderId: 'teacher', content: "I see. Let's start by reviewing the basic formula. Can you tell me what you remember about it?", timestamp: "2023-06-15T10:32:00Z" },
-  { id: 4, senderId: 'student', content: "I remember that the formula is ax^2 + bx + c = 0.", timestamp: "2023-06-15T10:33:00Z" },
+  { id: 2, senderId: 'student', content: "Hi Ms. Sarita, I'm having trouble with quadratic equations.", timestamp: "2023-06-15T10:31:00Z" },
+  { id: 3, senderId: 'teacher', content: " Can you tell me what you remember about it?", timestamp: "2023-06-15T10:32:00Z" },
+  { id: 4, senderId: 'student', content: "Yes", timestamp: "2023-06-15T10:33:00Z" },
 ];
 
 const Chatbox = () => {

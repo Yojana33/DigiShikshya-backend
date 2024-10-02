@@ -45,10 +45,10 @@ export default function StudentSidebar({ currentPath, onLinkClick }) {
               <FileText className="h-5 w-5 mr-3" />
               Assignments
             </Link>
-            <Link href="/student/schedule" className={`flex items-center p-2 rounded-lg ${currentPath === '/student/schedule' ? 'bg-gray-200 text-gray-900' : 'text-gray-700 hover:bg-gray-200'}`} onClick={onLinkClick}>
+            {/* <Link href="/student/schedule" className={`flex items-center p-2 rounded-lg ${currentPath === '/student/schedule' ? 'bg-gray-200 text-gray-900' : 'text-gray-700 hover:bg-gray-200'}`} onClick={onLinkClick}>
               <Calendar className="h-5 w-5 mr-3" />
               Schedule
-            </Link>
+            </Link> */}
             <Link href="/student/chatbox" className={`flex items-center p-2 rounded-lg ${currentPath === '/student/chatbox' ? 'bg-gray-200 text-gray-900' : 'text-gray-700 hover:bg-gray-200'}`} onClick={onLinkClick}>
               <MessageSquare className="h-5 w-5 mr-3" />
               Chatbox

@@ -40,94 +40,97 @@ export default function AssignmentsPage() {
   }
 
   return (
-   
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="bg-white shadow-sm z-10 p-4">
-          <div className="max-w-7xl mx-auto flex justify-end items-center">
-            <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="icon">
-                <Bell className="h-5 w-5" />
-              </Button>
-              <Avatar className="h-10 w-10">
-                <AvatarImage src="https://github.com/shadcn.png" alt="Student" />
-                <AvatarFallback>ST</AvatarFallback>
-              </Avatar>
-            </div>
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <header className="bg-white shadow-sm z-10 p-4">
+        <div className="max-w-7xl mx-auto flex justify-end items-center">
+          <div className="flex items-center space-x-4">
+            <Button variant="ghost" size="icon">
+              <Bell className="h-5 w-5" />
+            </Button>
+            <Avatar className="h-10 w-10">
+              <AvatarImage src="" alt="Student" />
+              <AvatarFallback>ST</AvatarFallback>
+            </Avatar>
           </div>
-        </header>
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100">
-          <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-            <h1 className="text-2xl font-bold mb-6">Assignments</h1>
-            <Tabs defaultValue="new" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="new">New Assignments</TabsTrigger>
-                <TabsTrigger value="submitted">Submitted Assignments</TabsTrigger>
-              </TabsList>
-              <TabsContent value="new">
-                <div className="grid gap-6">
-                  {assignmentsData.newAssignments.map((assignment) => (
-                    <Card key={assignment.id}>
-                      <CardHeader>
-                        <CardTitle>{assignment.title}</CardTitle>
-                        <CardDescription>{assignment.subject}</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-gray-500">Due: {assignment.dueDate}</p>
-                      </CardContent>
-                      <CardFooter className="flex justify-between">
-                        <div className="flex items-center">
-                          <Input
-                            id={`file-upload-${assignment.id}`}
-                            type="file"
-                            className="hidden"
-                            onChange={handleFileChange}
-                          />
-                          <Label
-                            htmlFor={`file-upload-${assignment.id}`}
-                            className="cursor-pointer inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-                          >
-                            <Upload className="h-4 w-4 mr-2" />
-                            Choose File
-                          </Label>
-                          {selectedFile && <span className="ml-2 text-sm">{selectedFile.name}</span>}
-                        </div>
-                        <Button onClick={() => handleSubmit(assignment.id)} disabled={!selectedFile}>
-                          Submit
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  ))}
-                </div>
-              </TabsContent>
-              <TabsContent value="submitted">
-                <div className="grid gap-6">
-                  {assignmentsData.submittedAssignments.map((assignment) => (
-                    <Card key={assignment.id}>
-                      <CardHeader>
-                        <CardTitle>{assignment.title}</CardTitle>
-                        <CardDescription>{assignment.subject}</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-gray-500">Submitted: {assignment.submittedDate}</p>
-                        <p className="text-sm font-medium mt-2">
-                          Grade: {assignment.grade === "Pending" ? (
-                            <span className="text-yellow-500 flex items-center">
-                              <Clock className="h-4 w-4 mr-1" /> Pending
-                            </span>
-                          ) : (
-                            <span className="text-green-500 flex items-center">
-                              <CheckCircle className="h-4 w-4 mr-1" /> {assignment.grade}
-                            </span>
-                          )}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </TabsContent>
-            </Tabs>
-          </div>
-        </main>
-      </div>
+        </div>
+      </header>
+      <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100">
+        <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-6">Assignments</h1>
+          <Tabs defaultValue="new" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-4">
+              <TabsTrigger value="new" className="text-blue-600 hover:text-blue-800">New Assignments</TabsTrigger>
+              <TabsTrigger value="submitted" className="text-blue-600 hover:text-blue-800">Submitted Assignments</TabsTrigger>
+            </TabsList>
+            <TabsContent value="new">
+              <div className="grid gap-6">
+                {assignmentsData.newAssignments.map((assignment) => (
+                  <Card key={assignment.id} className="bg-white shadow-md hover:shadow-lg transition duration-300 ease-in-out transform hover:scale-105">
+                    <CardHeader className="bg-blue-50">
+                      <CardTitle className="text-blue-600">{assignment.title}</CardTitle>
+                      <CardDescription className="text-gray-600">{assignment.subject}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-gray-500">Due: {assignment.dueDate}</p>
+                    </CardContent>
+                    <CardFooter className="flex justify-between">
+                      <div className="flex items-center">
+                        <Input
+                          id={`file-upload-${assignment.id}`}
+                          type="file"
+                          className="hidden"
+                          onChange={handleFileChange}
+                        />
+                        <Label
+                          htmlFor={`file-upload-${assignment.id}`}
+                          className="cursor-pointer inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                        >
+                          <Upload className="h-4 w-4 mr-2" />
+                          Choose File
+                        </Label>
+                        {selectedFile && <span className="ml-2 text-sm">{selectedFile.name}</span>}
+                      </div>
+                      <Button 
+                        onClick={() => handleSubmit(assignment.id)} 
+                        disabled={!selectedFile}
+                        className="bg-green-600 text-white hover:bg-green-700 transition duration-300 ease-in-out transform hover:scale-105"
+                      >
+                        Submit
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                ))}
+              </div>
+            </TabsContent>
+            <TabsContent value="submitted">
+              <div className="grid gap-6">
+                {assignmentsData.submittedAssignments.map((assignment) => (
+                  <Card key={assignment.id} className="bg-white shadow-md hover:shadow-lg transition duration-300 ease-in-out transform hover:scale-105">
+                    <CardHeader className="bg-green-50">
+                      <CardTitle className="text-green-600">{assignment.title}</CardTitle>
+                      <CardDescription className="text-gray-600">{assignment.subject}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-gray-500">Submitted: {assignment.submittedDate}</p>
+                      <p className="text-sm font-medium mt-2">
+                        Grade: {assignment.grade === "Pending" ? (
+                          <span className="text-yellow-500 flex items-center">
+                            <Clock className="h-4 w-4 mr-1" /> Pending
+                          </span>
+                        ) : (
+                          <span className="text-green-500 flex items-center">
+                            <CheckCircle className="h-4 w-4 mr-1" /> {assignment.grade}
+                          </span>
+                        )}
+                      </p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </main>
+    </div>
   )
 }

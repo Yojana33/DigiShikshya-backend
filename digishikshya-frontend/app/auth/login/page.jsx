@@ -81,7 +81,7 @@ export default function LoginPage() {
           <div className="space-y-4">
             <Button 
               variant="outline" 
-              className="w-full" 
+              className="w-full border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white transition duration-300 ease-in-out transform hover:scale-105" 
               onClick={() => handleSocialLogin('Google')}
               disabled={isLoading}
             >
@@ -90,7 +90,7 @@ export default function LoginPage() {
             </Button>
             <Button 
               variant="outline" 
-              className="w-full" 
+              className="w-full border-gray-800 text-gray-800 hover:bg-gray-800 hover:text-white transition duration-300 ease-in-out transform hover:scale-105" 
               onClick={() => handleSocialLogin('GitHub')}
               disabled={isLoading}
             >
@@ -146,7 +146,7 @@ export default function LoginPage() {
                 </Link>
               </div>
             </div>
-            <Button type="submit" className="w-full" disabled={isLoading} >
+            <Button type="submit" className="w-full bg-blue-600 text-white hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105" disabled={isLoading} >
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

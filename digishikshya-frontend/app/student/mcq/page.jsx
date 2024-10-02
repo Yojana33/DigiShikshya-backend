@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import StudentSidebar from './student-sidebar'
+//import StudentSidebar from './student-sidebar'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -76,20 +76,20 @@ const mcqData = [
 
 export default function MCQPage() {
   return (
-    <div className="flex h-screen bg-gray-100">
-      <div className="hidden md:block">
-        <StudentSidebar />
-      </div>
-      <Sheet>
-        <SheetTrigger asChild>
-          <Button variant="ghost" size="icon" className="md:hidden absolute top-4 left-4 z-50">
-            <Menu className="h-5 w-5" />
-          </Button>
-        </SheetTrigger>
-        <SheetContent side="left" className="p-0">
-          <StudentSidebar />
-        </SheetContent>
-      </Sheet>
+    // <div className="flex h-screen bg-gray-100">
+    //   <div className="hidden md:block">
+    //     <StudentSidebar />
+    //   </div>
+    //   <Sheet>
+    //     <SheetTrigger asChild>
+    //       <Button variant="ghost" size="icon" className="md:hidden absolute top-4 left-4 z-50">
+    //         <Menu className="h-5 w-5" />
+    //       </Button>
+    //     </SheetTrigger>
+    //     <SheetContent side="left" className="p-0">
+    //       <StudentSidebar />
+    //     </SheetContent>
+    //   </Sheet>
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="bg-white shadow-sm z-10 p-4">
           <div className="max-w-7xl mx-auto flex justify-end items-center">
@@ -153,6 +153,6 @@ export default function MCQPage() {
           </div>
         </main>
       </div>
-    </div>
+    //</div>
   )
 }
