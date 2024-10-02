@@ -10,40 +10,50 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Separator } from "@/components/ui/separator"
 import Link from 'next/link'
 import { BookOpen, Loader2, Github, Mail } from 'lucide-react'
-
+import Cookies from 'js-cookie'
+import axiosInstance from '@/config/axiosconfig'
 export default function LoginPage() {
-  const [email, setEmail] = useState('')
+  const [username, setUserName] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
 
   const router = useRouter()
 
-  const handleEmailLogin = async (e) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError('')
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+    console.log('Logging in with email and password');
 
     try {
-      // Simulating an API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      // Mock authentication logic (replace with actual authentication)
-      if (email === 'admin@example.com') {
-        router.push('/admin/dashboard')
-      } else if (email === 'teacher@example.com') {
-        router.push('/teacher/dashboard')
-      } else if (email === 'student@example.com') {
-        router.push('/student/dashboard')
+      const response = await axiosInstance.post('/login', { username, password });
+      const { AccessToken, RefereshToken, info } = response.data;
+
+      // Store tokens in cookies
+      Cookies.set('AccessToken', AccessToken, { secure: true, sameSite: 'Strict', path: '/' });
+      Cookies.set('RefreshToken', RefereshToken, { secure: true, sameSite: 'Strict', path: '/' });
+
+      // Extract roles from the login response
+      const roles = info.roles;
+
+      // Role-based redirection
+      if (roles.includes('Admin')) {
+        router.push('/admin/dashboard');  // Route to Admin dashboard
+      } else if (roles.includes('Teacher')) {
+        router.push('/teacher/dashboard');  // Route to Teacher dashboard
+      } else if (roles.includes('Student')) {
+        router.push('/student/dashboard');  // Route to Student dashboard
       } else {
-        throw new Error('Invalid credentials')
+        router.push('/dashboard');  // Default dashboard if no specific role found
       }
-    } catch (err) {
-      setError('Login failed. Please check your credentials and try again.')
+      
+    } catch (error) {
+      setError('Login failed. Please check your credentials and try again.');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleSocialLogin = async (provider) => {
     setIsLoading(true)
@@ -104,17 +114,17 @@ export default function LoginPage() {
               Or continue with
             </span>
           </div>
-          <form onSubmit={handleEmailLogin} className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <Label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email
+              <Label htmlFor="Username" className="block text-sm font-medium text-gray-700">
+                Username
               </Label>
               <Input
-                type="email"
-                id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
+                type="username"
+                id="username"
+                value={username}
+                onChange={(e) => setUserName(e.target.value)}
+                placeholder="Provided Username"
                 required
                 className="mt-1"
               />
