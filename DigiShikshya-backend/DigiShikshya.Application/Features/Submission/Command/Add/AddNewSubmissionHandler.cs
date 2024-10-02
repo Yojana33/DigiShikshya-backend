@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 
 public class AddNewSubmissionHandler(ISubmissionRepository submissionRepository, IAssignmentRepository assignmentRepository) : IRequestHandler<AddNewSubmission, AddNewSubmissionResponse>
 {
@@ -53,7 +54,7 @@ public class AddNewSubmissionHandler(ISubmissionRepository submissionRepository,
         {
             AssignmentId = request.AssignmentId,
             StudentId = request.StudentId,
-            SubmittedFile = request.SubmittedFile
+            SubmittedFile = await ConvertToByteArray(request.SubmittedFile!)
             // No need to set SubmittedDate; it will be handled by the database
         };
 
@@ -66,5 +67,11 @@ public class AddNewSubmissionHandler(ISubmissionRepository submissionRepository,
             Message = success ? "Submission added successfully" : "Failed to add submission",
             Errors = success ? null : new List<string> { "Something went wrong, please try again later" }
         };
+    }
+    private async Task<byte[]> ConvertToByteArray(IFormFile content)
+    {
+        using var memoryStream = new MemoryStream();
+        await content.CopyToAsync(memoryStream);
+        return memoryStream.ToArray();
     }
 }

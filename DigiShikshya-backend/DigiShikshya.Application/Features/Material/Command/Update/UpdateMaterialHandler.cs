@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Http;
 
 namespace DigiShikshya.Application.Features.Material.Command.Update
 {
@@ -46,7 +47,7 @@ namespace DigiShikshya.Application.Features.Material.Command.Update
             existingMaterial.Title = request.NewTitle ?? existingMaterial.Title;
             existingMaterial.Description = request.NewDescription ?? existingMaterial.Description;
             existingMaterial.ContentType = request.NewContentType ?? existingMaterial.ContentType;
-            existingMaterial.Content = request.NewContent ?? existingMaterial.Content;
+            existingMaterial.Content = request.NewContent != null ? await ConvertToByteArray(request.NewContent) : existingMaterial.Content;
             existingMaterial.UpdatedAt = DateTime.Now;
 
             // Update the material in the repository
@@ -59,5 +60,12 @@ namespace DigiShikshya.Application.Features.Material.Command.Update
                 Errors = success ? null : new List<string> { "Something went wrong, please try again later" }
             };
         }
+        private async Task<byte[]> ConvertToByteArray(IFormFile content)
+        {
+            using var memoryStream = new MemoryStream();
+            await content.CopyToAsync(memoryStream);
+            return memoryStream.ToArray();
+        }
     }
+
 }

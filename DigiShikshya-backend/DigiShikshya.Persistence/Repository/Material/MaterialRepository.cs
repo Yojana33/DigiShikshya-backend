@@ -38,27 +38,27 @@ public class MaterialRepository : IMaterialRepository
         var totalCount = await _dbConnection.ExecuteScalarAsync<int>(totalCountQuery);
 
         var query = @"
-        SELECT m.id AS Id,
-               m.subject_id AS SubjectId,
-               m.title AS Title,
-               m.description AS Description,
-               m.content_type AS ContentType,
-               m.content AS Content,
-               m.upload_date AS UploadDate,
-               m.uploaded_by AS UploadedBy,
-               m.created_at AS CreatedAt,
-               m.updated_at AS UpdatedAt,
-               s.subject_name AS SubjectName,
-               b.batch_name AS BatchName,
-               sem.semester_name AS SemesterName,
-               c.course_name AS CourseName
-        FROM material m
-        INNER JOIN subject s ON m.subject_id = s.id
-        INNER JOIN batch b ON s.batch_id = b.id 
-        INNER JOIN semester sem ON s.semester_id = sem.id
-        INNER JOIN course c ON sem.course_id = c.id
-        ORDER BY m.created_at DESC 
-        OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+            SELECT m.id AS Id,
+                   m.subject_id AS SubjectId,
+                   m.title AS Title,
+                   m.description AS Description,
+                   m.content_type AS ContentType,
+                   m.content AS Content,
+                   m.upload_date AS UploadDate,
+                   m.uploaded_by AS UploadedBy,
+                   m.created_at AS CreatedAt,
+                   m.updated_at AS UpdatedAt,
+                   s.subject_name AS SubjectName,
+                   b.start_date AS BatchName,
+                   sem.semester_name AS SemesterName,
+                   c.course_name AS CourseName
+            FROM material m
+            INNER JOIN subject s ON m.subject_id = s.id
+            INNER JOIN batch b ON s.batch_id = b.id 
+            INNER JOIN semester sem ON s.semester_id = sem.id
+            INNER JOIN course c ON sem.course_id = c.id
+            ORDER BY m.created_at DESC 
+            OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
         var result = await _dbConnection.QueryAsync<Material>(query, new
         {
@@ -75,9 +75,6 @@ public class MaterialRepository : IMaterialRepository
             TotalPages = (int)Math.Ceiling(totalCount / (double)request.PageSize)
         };
     }
-
-
-
     public async Task<Material> GetMaterialById(Guid id)
     {
         var query = @"
@@ -92,7 +89,7 @@ public class MaterialRepository : IMaterialRepository
                m.created_at AS CreatedAt,
                m.updated_at AS UpdatedAt,
                s.subject_name AS SubjectName,
-               b.batch_name AS BatchName,
+               b.start_date AS BatchName,
                sem.semester_name AS SemesterName,
                c.course_name AS CourseName
         FROM material m

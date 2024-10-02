@@ -19,7 +19,7 @@ public class StudentEnrollmentController : ControllerBase
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> EnrollStudent(AddNewEnrollment request)
+    public async Task<IActionResult> EnrollStudent([FromForm] AddNewEnrollment request)
     {
         var response = await _mediator.Send(request);
 

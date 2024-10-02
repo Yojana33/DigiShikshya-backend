@@ -32,17 +32,14 @@ public class TeacherAssignRepository : ITeacherAssignRepository
             SELECT ta.id AS Id, 
                    ta.teacher_id AS TeacherId, 
                    ta.subject_id AS SubjectId,
-                   sub.subject_name AS SubjectName,
-                   u.user_name AS TeacherName
+                   sub.subject_name AS SubjectName
             FROM teacherassign ta
             INNER JOIN subject sub ON ta.subject_id = sub.id
-            INNER JOIN userprofile u ON ta.teacher_id = u.user_id
             WHERE ta.id = @Id";
 
         var result = await _dbConnection.QuerySingleOrDefaultAsync<TeacherAssign>(query, new { Id = id });
         return result!;
     }
-
     // Get all teacher assignments with pagination
     public async Task<PaginatedResult<TeacherAssignListResponse>> GetAllTeacherAssignments(TeacherAssignListQuery request)
     {
@@ -54,17 +51,15 @@ public class TeacherAssignRepository : ITeacherAssignRepository
                    ta.teacher_id AS TeacherId,
                    ta.subject_id AS SubjectId,
                    sub.subject_name AS SubjectName,
-                   u.user_name AS TeacherName,
-                   b.batch_name AS BatchName,
+                   b.start_date AS BatchName,
                    c.course_name AS CourseName,
                    sem.semester_name AS SemesterName
-            FROM teacher_assign ta
+            FROM teacherassign ta
             INNER JOIN subject sub ON ta.subject_id = sub.id
-            INNER JOIN userprofile u ON ta.teacher_id = u.user_id
             INNER JOIN batch b ON sub.batch_id = b.id
-            INNER JOIN course c ON b.course_id = c.id
-            INNER JOIN semester sem ON b.semester_id = sem.id
-            ORDER BY u.user_name ASC
+            INNER JOIN semester sem ON sub.semester_id = sem.id -- Adjusted join condition
+            INNER JOIN course c ON sem.course_id = c.id -- Adjusted join condition
+            ORDER BY ta.teacher_id ASC
             OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
         var result = await _dbConnection.QueryAsync<TeacherAssignListResponse>(query, new
@@ -82,7 +77,6 @@ public class TeacherAssignRepository : ITeacherAssignRepository
             TotalPages = (int)Math.Ceiling(totalCount / (double)request.PageSize)
         };
     }
-
     // Update a teacher assignment
     public async Task<bool> UpdateTeacherAssignment(TeacherAssign teacherAssign)
     {

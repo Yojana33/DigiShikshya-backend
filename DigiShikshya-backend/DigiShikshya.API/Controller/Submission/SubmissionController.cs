@@ -14,7 +14,7 @@ public class SubmissionController(IMediator _mediator) : ControllerBase
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> AddSubmission(AddNewSubmission request)
+    public async Task<IActionResult> AddSubmission([FromForm] AddNewSubmission request)
     {
         var response = await _mediator.Send(request);
         return response.Status switch

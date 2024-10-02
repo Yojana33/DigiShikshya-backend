@@ -20,7 +20,7 @@ public class TeacherAssignController(IMediator _mediator) : ControllerBase
 
         return response.Status switch
         {
-            "Success" => CreatedAtAction(nameof(AddNewTeacherAssign), response),
+            "Success" => CreatedAtAction(nameof(AssignTeacher), response),
             "Bad Request" => BadRequest(response),
             "Internal Server Error" => StatusCode(StatusCodes.Status500InternalServerError, response),
             _ => StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.")
