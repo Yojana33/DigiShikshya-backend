@@ -29,8 +29,10 @@ export default function LoginPage() {
     try {
       const response = await axiosInstance.post('/login', { username, password });
       const { AccessToken, RefereshToken, info } = response.data;
+      const { id, role } = info;
 
-      // Store tokens in cookies
+      localStorage.setItem('userId', id);
+      localStorage.setItem('userRoles', JSON.stringify(role));      // Store tokens in cookies
       Cookies.set('AccessToken', AccessToken, { secure: true, sameSite: 'Strict', path: '/' });
       Cookies.set('RefreshToken', RefereshToken, { secure: true, sameSite: 'Strict', path: '/' });
 
