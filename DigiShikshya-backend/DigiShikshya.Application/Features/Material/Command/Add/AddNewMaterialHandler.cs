@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 
 public class AddNewMaterialHandler : IRequestHandler<AddNewMaterial, AddNewMaterialResponse>
 {
@@ -14,7 +15,7 @@ public class AddNewMaterialHandler : IRequestHandler<AddNewMaterial, AddNewMater
 
     public async Task<AddNewMaterialResponse> Handle(AddNewMaterial request, CancellationToken cancellationToken)
     {
-        
+
 
         var validator = new AddNewMaterialValidator();
         var validationResult = validator.Validate(request);
@@ -35,10 +36,12 @@ public class AddNewMaterialHandler : IRequestHandler<AddNewMaterial, AddNewMater
             Title = request.Title,
             Description = request.Description,
             ContentType = request.ContentType,
-            Content = request.Content,
             UploadedBy = request.UploadedBy,
-            UploadDate = DateTime.UtcNow 
+            Content = await ConvertToByteArray(request.Content!),
+            UploadDate = DateTime.UtcNow
         };
+
+
 
         var success = await _materialRepository.AddMaterial(material);
 
@@ -48,5 +51,12 @@ public class AddNewMaterialHandler : IRequestHandler<AddNewMaterial, AddNewMater
             Message = success ? "Material added successfully" : "Failed to add material",
             Errors = success ? null : new List<string> { "Something went wrong, please try again later" }
         };
+    }
+
+    private async Task<byte[]> ConvertToByteArray(IFormFile content)
+    {
+        using var memoryStream = new MemoryStream();
+        await content.CopyToAsync(memoryStream);
+        return memoryStream.ToArray();
     }
 }
