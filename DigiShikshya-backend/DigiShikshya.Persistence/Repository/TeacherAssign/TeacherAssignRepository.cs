@@ -18,7 +18,7 @@ public class TeacherAssignRepository : ITeacherAssignRepository
     public async Task<bool> AssignTeacher(TeacherAssign teacherAssign)
     {
         var query = @"
-            INSERT INTO teacher_assign (id, teacher_id, subject_id, created_at)
+            INSERT INTO teacherassign (id, teacher_id, subject_id, created_at)
             VALUES (@Id, @TeacherId, @SubjectId, @CreatedAt)";
 
         var rowsAffected = await _dbConnection.ExecuteAsync(query, teacherAssign);
@@ -34,7 +34,7 @@ public class TeacherAssignRepository : ITeacherAssignRepository
                    ta.subject_id AS SubjectId,
                    sub.subject_name AS SubjectName,
                    u.user_name AS TeacherName
-            FROM teacher_assign ta
+            FROM teacherassign ta
             INNER JOIN subject sub ON ta.subject_id = sub.id
             INNER JOIN userprofile u ON ta.teacher_id = u.user_id
             WHERE ta.id = @Id";
@@ -46,7 +46,7 @@ public class TeacherAssignRepository : ITeacherAssignRepository
     // Get all teacher assignments with pagination
     public async Task<PaginatedResult<TeacherAssignListResponse>> GetAllTeacherAssignments(TeacherAssignListQuery request)
     {
-        var totalCountQuery = "SELECT COUNT(*) FROM teacher_assign";
+        var totalCountQuery = "SELECT COUNT(*) FROM teacherassign";
         var totalCount = await _dbConnection.ExecuteScalarAsync<int>(totalCountQuery);
 
         var query = @"
@@ -87,7 +87,7 @@ public class TeacherAssignRepository : ITeacherAssignRepository
     public async Task<bool> UpdateTeacherAssignment(TeacherAssign teacherAssign)
     {
         var query = @"
-            UPDATE teacher_assign
+            UPDATE teacherassign
             SET teacher_id = @TeacherId, 
                 subject_id = @SubjectId,
                 updated_at = @UpdatedAt
@@ -100,7 +100,7 @@ public class TeacherAssignRepository : ITeacherAssignRepository
     // Delete a teacher assignment by Id
     public async Task<bool> DeleteTeacherAssignment(Guid id)
     {
-        var query = "DELETE FROM teacher_assign WHERE id = @Id";
+        var query = "DELETE FROM teacherassign WHERE id = @Id";
 
         var rowsAffected = await _dbConnection.ExecuteAsync(query, new { Id = id });
         return rowsAffected > 0;
