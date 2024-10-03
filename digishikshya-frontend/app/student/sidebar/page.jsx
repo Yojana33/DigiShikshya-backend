@@ -16,12 +16,22 @@ import {
   LogOut,
   Menu
 } from 'lucide-react'
+import axios from 'axios'
+import Cookies from 'js-cookie'
 
 export default function StudentSidebar({ currentPath, onLinkClick }) {
   const router = useRouter()
 
   const handleLogout = () => {
-    router.push('/')
+    axios.post('/logout')
+      .then(() => {
+        Cookies.remove('AccessToken')
+        Cookies.remove('RefreshToken')
+        router.push('/login')
+      })
+      .catch(() => {
+        router.push('/login')
+      })
   }
 
   return (

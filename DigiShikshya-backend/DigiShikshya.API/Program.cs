@@ -113,15 +113,27 @@ builder.Services.AddSwaggerGen(c =>
         {
             new OpenApiSecurityScheme
             {
-                Reference = new OpenApiReference 
-                { 
-                    Type = ReferenceType.SecurityScheme, 
-                    Id = "Bearer" 
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
                 }
             },
             Array.Empty<string>()
         }
     });
+});
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend",
+                builder =>
+                {
+                    builder.WithOrigins("http://localhost:3000")
+                           .AllowAnyHeader()
+                           .AllowAnyMethod()
+                           .AllowCredentials();
+                });
 });
 
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<Program>());
@@ -161,6 +173,9 @@ else
 // Application Setup Section
 // --------------------
 var app = builder.Build();
+
+
+app.UseCors("AllowFrontend");
 
 // --------------------
 // Middleware Configuration Section
