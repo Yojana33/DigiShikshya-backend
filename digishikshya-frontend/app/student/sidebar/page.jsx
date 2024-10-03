@@ -27,10 +27,10 @@ export default function StudentSidebar({ currentPath, onLinkClick }) {
       .then(() => {
         Cookies.remove('AccessToken')
         Cookies.remove('RefreshToken')
-        router.push('/login')
+        router.push('/')
       })
       .catch(() => {
-        router.push('/login')
+        router.push('/')
       })
   }
 
