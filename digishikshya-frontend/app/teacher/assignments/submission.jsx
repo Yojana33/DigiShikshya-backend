@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import TeacherSidebar from './teacher-sidebar'
+//import TeacherSidebar from './teacher-sidebar'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -42,20 +42,20 @@ export default function TeacherSubmissionPage() {
   }
 
   return (
-    <div className="flex h-screen bg-gradient-to-b from-blue-100 to-white">
-      <div className="hidden md:block">
-        <TeacherSidebar />
-      </div>
-      <Sheet>
-        <SheetTrigger asChild>
-          <Button variant="ghost" size="icon" className="md:hidden absolute top-4 left-4 z-50">
-            <Menu className="h-5 w-5" />
-          </Button>
-        </SheetTrigger>
-        <SheetContent side="left" className="p-0">
-          <TeacherSidebar />
-        </SheetContent>
-      </Sheet>
+    // <div className="flex h-screen bg-gradient-to-b from-blue-100 to-white">
+    //   <div className="hidden md:block">
+    //     <TeacherSidebar />
+    //   </div>
+    //   <Sheet>
+    //     <SheetTrigger asChild>
+    //       <Button variant="ghost" size="icon" className="md:hidden absolute top-4 left-4 z-50">
+    //         <Menu className="h-5 w-5" />
+    //       </Button>
+    //     </SheetTrigger>
+    //     <SheetContent side="left" className="p-0">
+    //       <TeacherSidebar />
+    //     </SheetContent>
+    //   </Sheet>
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="bg-white shadow-sm z-10 p-4">
           <div className="max-w-7xl mx-auto flex justify-between items-center">
@@ -131,6 +131,6 @@ export default function TeacherSubmissionPage() {
           </div>
         </main>
       </div>
-    </div>
+   // </div>
   )
 }
