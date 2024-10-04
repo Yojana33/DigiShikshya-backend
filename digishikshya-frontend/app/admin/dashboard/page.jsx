@@ -59,7 +59,7 @@ export default function AdminDashboard() {
   ]
 
   const quickLinks = [
-    { title: 'View Materials', href: '/admin/materials', icon: FileText, color: 'bg-blue-500' },
+    { title: 'View Materials', href: '/admin/material', icon: FileText, color: 'bg-blue-500' },
     { title: 'View Assignments', href: '/admin/assignments', icon: CheckSquare, color: 'bg-green-500' },
     { title: 'View Submissions', href: '/admin/submissions', icon: Upload, color: 'bg-purple-500' },
   ]

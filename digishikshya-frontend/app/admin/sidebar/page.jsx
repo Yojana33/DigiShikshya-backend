@@ -63,10 +63,10 @@ export default function AdminSidebar({ currentPath, onLinkClick }) {
             <UserSquare2 className="h-5 w-5 mr-3" />
             Student
           </Link>
-          <Link href="/admin/settings" className={`flex items-center p-2 rounded-lg ${currentPath === '/admin/settings' ? 'bg-gray-200 text-gray-900' : 'text-gray-700 hover:bg-gray-200'}`} onClick={() => { onLinkClick(); setIsOpen(false); }}>
+          {/* <Link href="/admin/settings" className={`flex items-center p-2 rounded-lg ${currentPath === '/admin/settings' ? 'bg-gray-200 text-gray-900' : 'text-gray-700 hover:bg-gray-200'}`} onClick={() => { onLinkClick(); setIsOpen(false); }}>
             <Settings className="h-5 w-5 mr-3" />
             Settings
-          </Link>
+          </Link> */}
         </nav>
       </ScrollArea>
       <Button
