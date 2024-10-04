@@ -41,4 +41,24 @@ public class SubmissionController(IMediator _mediator) : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An unexpected error occurred. Please try again later." });
         }
     }
+    [HttpPost("check-plagiarism")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> CheckPlagiarism([FromForm] CheckPlagiarismRequest request)
+    {
+        try
+        {
+            var hasSimilarities = await _submissionService.CheckForSimilarities(request.SubmittedFile, request.StudentEmail);
+            if (hasSimilarities)
+            {
+                return Ok(new { message = "Plagiarism detected." });
+            }
+            return Ok(new { message = "No plagiarism detected." });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
+        }
+    }
 }
