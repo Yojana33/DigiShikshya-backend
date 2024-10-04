@@ -7,23 +7,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Progress } from "@/components/ui/progress"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Bell, Menu, BookOpen, FileText, Calendar, ArrowRight, BarChart2, CheckCircle2 } from 'lucide-react'
+import { Bell, Menu, BookOpen, FileText, Calendar, ArrowRight, BarChart2, CheckCircle2, Clock, Book } from 'lucide-react'
 
 // Mock data - replace with actual data fetching
 const studentData = {
   name: "Test Student",
   stats: {
     completedAssignments: 15,
-    upcomingAssignments: 5,
-    averageScore: 85,
-    totalSubjects: 6
+    pendingAssignments: 5,
+    totalSubjects: 6,
+    totalMaterials: 30
   },
   recentActivities: [
     { id: 1, type: "Completed Assignment", subject: "Mathematics", date: "2023-06-15" },
     { id: 2, type: "Took MCQ Test", subject: "Science", date: "2023-06-14" },
     { id: 3, type: "Viewed Notes", subject: "English", date: "2023-06-13" },
   ],
-  upcomingAssignments: [
+  pendingAssignments: [
     { id: 1, title: "Algebra Homework", subject: "Mathematics", dueDate: "2023-06-20" },
     { id: 2, title: "Science Project", subject: "Science", dueDate: "2023-06-25" },
     { id: 3, title: "Essay Submission", subject: "English", dueDate: "2023-06-22" },
@@ -64,31 +64,31 @@ export default function StudentDashboard() {
                   <div className="text-2xl font-bold text-blue-600">{studentData.stats.completedAssignments}</div>
                 </CardContent>
               </Card>
-              <Card className="bg-green-50 hover:bg-green-100 transition duration-300 ease-in-out transform hover:scale-105">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Upcoming Assignments</CardTitle>
-                  <Calendar className="h-4 w-4 text-green-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-green-600">{studentData.stats.upcomingAssignments}</div>
-                </CardContent>
-              </Card>
               <Card className="bg-yellow-50 hover:bg-yellow-100 transition duration-300 ease-in-out transform hover:scale-105">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Average Score</CardTitle>
-                  <BarChart2 className="h-4 w-4 text-yellow-600" />
+                  <CardTitle className="text-sm font-medium">Pending Assignments</CardTitle>
+                  <Clock className="h-4 w-4 text-yellow-600" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-yellow-600">{studentData.stats.averageScore}%</div>
+                  <div className="text-2xl font-bold text-yellow-600">{studentData.stats.pendingAssignments}</div>
+                </CardContent>
+              </Card>
+              <Card className="bg-green-50 hover:bg-green-100 transition duration-300 ease-in-out transform hover:scale-105">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Subjects</CardTitle>
+                  <BookOpen className="h-4 w-4 text-green-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-green-600">{studentData.stats.totalSubjects}</div>
                 </CardContent>
               </Card>
               <Card className="bg-purple-50 hover:bg-purple-100 transition duration-300 ease-in-out transform hover:scale-105">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Subjects</CardTitle>
-                  <BookOpen className="h-4 w-4 text-purple-600" />
+                  <CardTitle className="text-sm font-medium">Total Materials</CardTitle>
+                  <Book className="h-4 w-4 text-purple-600" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-purple-600">{studentData.stats.totalSubjects}</div>
+                  <div className="text-2xl font-bold text-purple-600">{studentData.stats.totalMaterials}</div>
                 </CardContent>
               </Card>
             </div>
@@ -118,14 +118,14 @@ export default function StudentDashboard() {
                 </CardContent>
               </Card>
 
-              {/* Upcoming Assignments */}
+              {/* Pending Assignments */}
               <Card className="bg-white shadow-md hover:shadow-lg transition duration-300 ease-in-out transform hover:scale-105">
                 <CardHeader>
-                  <CardTitle>Upcoming Assignments</CardTitle>
+                  <CardTitle>Pending Assignments</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-4">
-                    {studentData.upcomingAssignments.map((assignment) => (
+                    {studentData.pendingAssignments.map((assignment) => (
                       <li key={assignment.id} className="flex items-center space-x-3">
                         <div className="flex-shrink-0">
                           <Calendar className="h-5 w-5 text-gray-400" />

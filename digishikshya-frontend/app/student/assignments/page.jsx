@@ -8,7 +8,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Bell, Menu, FileText, Upload, CheckCircle, Clock } from 'lucide-react'
+import { Bell, Menu, FileText, Upload, CheckCircle, XCircle } from 'lucide-react'
 
 // Mock data - replace with actual data fetching
 const assignmentsData = {
@@ -18,9 +18,9 @@ const assignmentsData = {
     { id: 3, title: "Science Lab Report", subject: "Science", dueDate: "2023-06-30" },
   ],
   submittedAssignments: [
-    { id: 4, title: "History Research Paper", subject: "History", submittedDate: "2023-06-10", grade: "A-" },
-    { id: 5, title: "Physics Problem Set", subject: "Physics", submittedDate: "2023-06-12", grade: "B+" },
-    { id: 6, title: "Literature Analysis", subject: "English", submittedDate: "2023-06-15", grade: "Pending" },
+    { id: 4, title: "History Research Paper", subject: "History", submittedDate: "2023-06-10", status: "Submitted" },
+    { id: 5, title: "Physics Problem Set", subject: "Physics", submittedDate: "2023-06-12", status: "Submitted" },
+    { id: 6, title: "Literature Analysis", subject: "English", dueDate: "2023-06-20", status: "Not Submitted" },
   ]
 }
 
@@ -106,20 +106,27 @@ export default function AssignmentsPage() {
               <div className="grid gap-6">
                 {assignmentsData.submittedAssignments.map((assignment) => (
                   <Card key={assignment.id} className="bg-white shadow-md hover:shadow-lg transition duration-300 ease-in-out transform hover:scale-105">
-                    <CardHeader className="bg-green-50">
-                      <CardTitle className="text-green-600">{assignment.title}</CardTitle>
+                    <CardHeader className={assignment.status === "Submitted" ? "bg-green-50" : "bg-red-50"}>
+                      <CardTitle className={assignment.status === "Submitted" ? "text-green-600" : "text-red-600"}>
+                        {assignment.title}
+                      </CardTitle>
                       <CardDescription className="text-gray-600">{assignment.subject}</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-sm text-gray-500">Submitted: {assignment.submittedDate}</p>
-                      <p className="text-sm font-medium mt-2">
-                        Grade: {assignment.grade === "Pending" ? (
-                          <span className="text-yellow-500 flex items-center">
-                            <Clock className="h-4 w-4 mr-1" /> Pending
+                      {assignment.status === "Submitted" ? (
+                        <p className="text-sm text-gray-500">Submitted: {assignment.submittedDate}</p>
+                      ) : (
+                        <p className="text-sm text-gray-500">Due: {assignment.dueDate}</p>
+                      )}
+                      <p className="text-sm font-medium mt-2 flex items-center">
+                        Status: 
+                        {assignment.status === "Submitted" ? (
+                          <span className="text-green-500 flex items-center ml-2">
+                            <CheckCircle className="h-4 w-4 mr-1" /> Submitted
                           </span>
                         ) : (
-                          <span className="text-green-500 flex items-center">
-                            <CheckCircle className="h-4 w-4 mr-1" /> {assignment.grade}
+                          <span className="text-red-500 flex items-center ml-2">
+                            <XCircle className="h-4 w-4 mr-1" /> Not Submitted
                           </span>
                         )}
                       </p>
