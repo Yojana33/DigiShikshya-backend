@@ -8,24 +8,19 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Bell, Search, Eye, FileText, Download, File, Image as ImageIcon } from 'lucide-react'
-
-// Mock data for submissions
-const submissions = [
-  { id: 1, assignmentTitle: 'React Hooks Essay', studentName: 'Alice Johnson', batch: '2023', course: 'Computer Science', semester: '3rd', subject: 'Web Development', submissionDate: '2023-06-14', fileUrl: 'https://example.com/submission1.pdf', fileType: 'pdf' },
-  { id: 2, assignmentTitle: 'Data Structures Implementation', studentName: 'Bob Smith', batch: '2022', course: 'Computer Science', semester: '2nd', subject: 'Data Structures', submissionDate: '2023-06-19', fileUrl: 'https://example.com/submission2.txt', fileType: 'txt' },
-  { id: 3, assignmentTitle: 'Chemistry Lab Report', studentName: 'Charlie Brown', batch: '2023', course: 'Chemistry', semester: '1st', subject: 'General Chemistry', submissionDate: '2023-06-17', fileUrl: 'https://example.com/submission3.jpg', fileType: 'image' },
-  // Add more mock data as needed
-]
+import { fetchSubmissions, addSubmission, updateSubmission, deleteSubmission } from '@/lib/api';
 
 export default function ViewSubmissionsPage() {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [selectedSubmission, setSelectedSubmission] = useState(null)
+  const queryClient = useQueryClient();
+  const { data: submissions, error, isLoading } = useQuery(['submissions'], fetchSubmissions);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedSubmission, setSelectedSubmission] = useState(null);
 
-  const filteredSubmissions = submissions.filter(submission =>
+  const filteredSubmissions = submissions?.filter(submission =>
     Object.values(submission).some(value =>
       value.toString().toLowerCase().includes(searchTerm.toLowerCase())
     )
-  )
+  );
 
   const getFileIcon = (fileType) => {
     switch (fileType) {
@@ -97,6 +92,13 @@ export default function ViewSubmissionsPage() {
     )
   }
 
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error.message}</div>;
+  }
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       <header className="bg-white shadow-sm z-10 p-4">

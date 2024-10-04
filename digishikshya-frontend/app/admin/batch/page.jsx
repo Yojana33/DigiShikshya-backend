@@ -9,28 +9,43 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Edit, Trash } from 'lucide-react'
+import { fetchBatches, addBatch, updateBatch, deleteBatch } from '@/lib/api';
 
-// Mock data for batches - replace with actual data fetching
-const initialBatches = [
-  { id: 1, name: "Batch 2023", startDate: "2023-01-01", endDate: "2023-12-31", status: "running" },
-  { id: 2, name: "Batch 2022", startDate: "2022-01-01", endDate: "2022-12-31", status: "passout" },
-]
 
 export default function BatchPage() {
-  const [batches, setBatches] = useState(initialBatches)
-  const [editingBatch, setEditingBatch] = useState(null)
+ const queryClient = useQueryClient();
+  const { data: batches, error, isLoading } = useQuery(['batches'], fetchBatches);
+  const addMutation = useMutation(addBatch, {
+    onSuccess: () => queryClient.invalidateQueries(['batches']),
+  });
+  const updateMutation = useMutation(updateBatch, {
+    onSuccess: () => queryClient.invalidateQueries(['batches']),
+  });
+  const deleteMutation = useMutation(deleteBatch, {
+    onSuccess: () => queryClient.invalidateQueries(['batches']),
+  });
+
+  const [editingBatch, setEditingBatch] = useState(null);
 
   const handleCreateBatch = (newBatch) => {
-    setBatches([...batches, { ...newBatch, id: batches.length + 1 }])
-  }
+    addMutation.mutate(newBatch);
+  };
 
   const handleEditBatch = (editedBatch) => {
-    setBatches(batches.map(batch => batch.id === editedBatch.id ? editedBatch : batch))
-    setEditingBatch(null)
-  }
+    updateMutation.mutate(editedBatch);
+    setEditingBatch(null);
+  };
 
   const handleDeleteBatch = (batchId) => {
-    setBatches(batches.filter(batch => batch.id !== batchId))
+    deleteMutation.mutate(batchId);
+  };
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error.message}</div>;
   }
 
   return (

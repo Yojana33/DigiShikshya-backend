@@ -8,24 +8,19 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Bell, Search, Eye, FileText, Video, Image as ImageIcon } from 'lucide-react'
-
-// Mock data for materials
-const materials = [
-  { id: 1, title: 'Introduction to React', type: 'pdf', teacher: 'John Doe', batch: '2023', course: 'Computer Science', semester: '3rd', subject: 'Web Development', url: 'https://example.com/intro-to-react.pdf' },
-  { id: 2, title: 'Data Structures Basics', type: 'video', teacher: 'Jane Smith', batch: '2022', course: 'Computer Science', semester: '2nd', subject: 'Data Structures', url: 'https://example.com/data-structures-basics.mp4' },
-  { id: 3, title: 'Chemistry Lab Safety', type: 'image', teacher: 'Alice Johnson', batch: '2023', course: 'Chemistry', semester: '1st', subject: 'General Chemistry', url: 'https://example.com/lab-safety.jpg' },
-  // Add more mock data as needed
-]
+import { fetchMaterials, addMaterial, updateMaterial, deleteMaterial } from '@/lib/api';
 
 export default function ViewMaterialsPage() {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [selectedMaterial, setSelectedMaterial] = useState(null)
+  const queryClient = useQueryClient();
+  const { data: materials, error, isLoading } = useQuery(['materials'], fetchMaterials);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedMaterial, setSelectedMaterial] = useState(null);
 
-  const filteredMaterials = materials.filter(material =>
+  const filteredMaterials = materials?.filter(material =>
     Object.values(material).some(value =>
       value.toString().toLowerCase().includes(searchTerm.toLowerCase())
     )
-  )
+  );
 
   const getFileIcon = (type) => {
     switch (type) {
@@ -70,6 +65,13 @@ export default function ViewMaterialsPage() {
     }
   }
 
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error.message}</div>;
+  }
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       <header className="bg-white shadow-sm z-10 p-4">

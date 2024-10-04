@@ -12,46 +12,67 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Edit, Trash, Search } from 'lucide-react'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-
-// Mock data for students and related entities - replace with actual data fetching
-const initialEnrollments = [
-  { id: 1, student: "John Doe", batch: "2023", course: "Computer Science", semester: "Fall 2023" },
-  { id: 2, student: "Jane Smith", batch: "2023", course: "Mathematics", semester: "Fall 2023" },
-]
-
-const students = [
-  "John Doe", "Jane Smith", "Alice Johnson", "Bob Williams", "Charlie Brown", "Diana Prince", "Ethan Hunt", "Fiona Apple"
-]
-const batches = ["2022", "2023", "2024"]
-const courses = ["Computer Science", "Mathematics", "Physics", "Biology"]
-const semesters = ["Fall 2023", "Spring 2024", "Fall 2024"]
+import { fetchEnrollments, addEnrollment, updateEnrollment, deleteEnrollment, fetchStudents, fetchBatches, fetchCourses, fetchSemesters } from '@/lib/api';
 
 export default function EnrollStudentPage() {
-  const [enrollments, setEnrollments] = useState(initialEnrollments)
-  const [editingEnrollment, setEditingEnrollment] = useState(null)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [filteredEnrollments, setFilteredEnrollments] = useState(enrollments)
+  const queryClient = useQueryClient();
+  const { data: enrollments, error: enrollmentsError, isLoading: isLoadingEnrollments } = useQuery(['enrollments'], fetchEnrollments);
+  const { data: students, error: studentsError, isLoading: isLoadingStudents } = useQuery(['students'], fetchStudents);
+  const { data: batches, error: batchesError, isLoading: isLoadingBatches } = useQuery(['batches'], fetchBatches);
+  const { data: courses, error: coursesError, isLoading: isLoadingCourses } = useQuery(['courses'], fetchCourses);
+  const { data: semesters, error: semestersError, isLoading: isLoadingSemesters } = useQuery(['semesters'], fetchSemesters);
+  const [editingEnrollment, setEditingEnrollment] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filteredEnrollments, setFilteredEnrollments] = useState([]);
 
   useEffect(() => {
-    const results = enrollments.filter(enrollment =>
-      Object.values(enrollment).some(value => 
-        value.toString().toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    )
-    setFilteredEnrollments(results)
-  }, [enrollments, searchTerm])
+    if (enrollments) {
+      const results = enrollments.filter(enrollment =>
+        Object.values(enrollment).some(value => 
+          value.toString().toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      );
+      setFilteredEnrollments(results);
+    }
+  }, [enrollments, searchTerm]);
+
+  const addEnrollmentMutation = useMutation(addEnrollment, {
+    onSuccess: () => {
+      queryClient.invalidateQueries(['enrollments']);
+    },
+  });
+
+  const updateEnrollmentMutation = useMutation(updateEnrollment, {
+    onSuccess: () => {
+      queryClient.invalidateQueries(['enrollments']);
+    },
+  });
+
+  const deleteEnrollmentMutation = useMutation(deleteEnrollment, {
+    onSuccess: () => {
+      queryClient.invalidateQueries(['enrollments']);
+    },
+  });
 
   const handleCreateEnrollment = (newEnrollment) => {
-    setEnrollments([...enrollments, { ...newEnrollment, id: enrollments.length + 1 }])
-  }
+    addEnrollmentMutation.mutate(newEnrollment);
+  };
 
   const handleEditEnrollment = (editedEnrollment) => {
-    setEnrollments(enrollments.map(enrollment => enrollment.id === editedEnrollment.id ? editedEnrollment : enrollment))
-    setEditingEnrollment(null)
-  }
+    updateEnrollmentMutation.mutate(editedEnrollment);
+    setEditingEnrollment(null);
+  };
 
   const handleDeleteEnrollment = (enrollmentId) => {
-    setEnrollments(enrollments.filter(enrollment => enrollment.id !== enrollmentId))
+    deleteEnrollmentMutation.mutate(enrollmentId);
+  };
+
+  if (isLoadingEnrollments || isLoadingStudents || isLoadingBatches || isLoadingCourses || isLoadingSemesters) {
+    return <div>Loading...</div>;
+  }
+
+  if (enrollmentsError || studentsError || batchesError || coursesError || semestersError) {
+    return <div>Error: {enrollmentsError?.message || studentsError?.message || batchesError?.message || coursesError?.message || semestersError?.message}</div>;
   }
 
   return (

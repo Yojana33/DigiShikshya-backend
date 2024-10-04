@@ -9,45 +9,22 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Edit, Trash, Search } from 'lucide-react'
+import { fetchBatches, fetchTeachers, fetchCourses, fetchSemesters, fetchSubjects } from '@/lib/api';
 
-// Mock data for teachers and related entities - replace with actual data fetching
-const initialAssignments = [
-  { id: 1, teacher: "John Doe", batch: "2023", course: "Computer Science", semester: "Fall 2023", subject: "Introduction to Programming" },
-  { id: 2, teacher: "Jane Smith", batch: "2023", course: "Mathematics", semester: "Fall 2023", subject: "Calculus I" },
-]
+export default function YourComponent() {
+  const queryClient = useQueryClient();
+  const { data: batches, error: batchesError, isLoading: isLoadingBatches } = useQuery(['batches'], fetchBatches);
+  const { data: teachers, error: teachersError, isLoading: isLoadingTeachers } = useQuery(['teachers'], fetchTeachers);
+  const { data: courses, error: coursesError, isLoading: isLoadingCourses } = useQuery(['courses'], fetchCourses);
+  const { data: semesters, error: semestersError, isLoading: isLoadingSemesters } = useQuery(['semesters'], fetchSemesters);
+  const { data: subjects, error: subjectsError, isLoading: isLoadingSubjects } = useQuery(['subjects'], fetchSubjects);
 
-const teachers = ["John Doe", "Jane Smith", "Alice Johnson", "Bob Williams"]
-const batches = ["2022", "2023", "2024"]
-const courses = ["Computer Science", "Mathematics", "Physics", "Biology"]
-const semesters = ["Fall 2023", "Spring 2024", "Fall 2024"]
-const subjects = ["Introduction to Programming", "Calculus I", "Physics I", "Biology 101"]
-
-export default function TeacherAssignPage() {
-  const [assignments, setAssignments] = useState(initialAssignments)
-  const [editingAssignment, setEditingAssignment] = useState(null)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [filteredAssignments, setFilteredAssignments] = useState(assignments)
-
-  useEffect(() => {
-    const results = assignments.filter(assignment =>
-      Object.values(assignment).some(value => 
-        value.toString().toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    )
-    setFilteredAssignments(results)
-  }, [assignments, searchTerm])
-
-  const handleCreateAssignment = (newAssignment) => {
-    setAssignments([...assignments, { ...newAssignment, id: assignments.length + 1 }])
+  if (isLoadingBatches || isLoadingTeachers || isLoadingCourses || isLoadingSemesters || isLoadingSubjects) {
+    return <div>Loading...</div>;
   }
 
-  const handleEditAssignment = (editedAssignment) => {
-    setAssignments(assignments.map(assignment => assignment.id === editedAssignment.id ? editedAssignment : assignment))
-    setEditingAssignment(null)
-  }
-
-  const handleDeleteAssignment = (assignmentId) => {
-    setAssignments(assignments.filter(assignment => assignment.id !== assignmentId))
+  if (batchesError || teachersError || coursesError || semestersError || subjectsError) {
+    return <div>Error: {batchesError?.message || teachersError?.message || coursesError?.message || semestersError?.message || subjectsError?.message}</div>;
   }
 
   return (

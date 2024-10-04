@@ -9,31 +9,52 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Edit, Trash } from 'lucide-react'
-
-// Mock data for courses - replace with actual data fetching
-const initialCourses = [
-  { id: 1, name: "Computer Science", description: "Study of computation, information, and automation" },
-  { id: 2, name: "Mathematics", description: "Study of numbers, quantities, and shapes" },
-  { id: 3, name: "Physics", description: "Study of matter, energy, and their interactions" },
-]
+import { fetchCourses, addCourse, updateCourse, deleteCourse } from '@/lib/api';
 
 export default function CoursePage() {
-  const [courses, setCourses] = useState(initialCourses)
-  const [editingCourse, setEditingCourse] = useState(null)
+  const queryClient = useQueryClient();
+  const { data: courses, error, isLoading } = useQuery(['courses'], fetchCourses);
+  const [editingCourse, setEditingCourse] = useState(null);
+
+  const addCourseMutation = useMutation(addCourse, {
+    onSuccess: () => {
+      queryClient.invalidateQueries(['courses']);
+    },
+  });
+
+  const updateCourseMutation = useMutation(updateCourse, {
+    onSuccess: () => {
+      queryClient.invalidateQueries(['courses']);
+    },
+  });
+
+  const deleteCourseMutation = useMutation(deleteCourse, {
+    onSuccess: () => {
+      queryClient.invalidateQueries(['courses']);
+    },
+  });
 
   const handleCreateCourse = (newCourse) => {
-    setCourses([...courses, { ...newCourse, id: courses.length + 1 }])
-  }
+    addCourseMutation.mutate(newCourse);
+  };
 
   const handleEditCourse = (editedCourse) => {
-    setCourses(courses.map(course => course.id === editedCourse.id ? editedCourse : course))
-    setEditingCourse(null)
-  }
+    updateCourseMutation.mutate(editedCourse);
+    setEditingCourse(null);
+  };
 
   const handleDeleteCourse = (courseId) => {
-    setCourses(courses.filter(course => course.id !== courseId))
+    deleteCourseMutation.mutate(courseId);
+  };
+
+  if (isLoading) {
+    return <div>Loading...</div>;
   }
 
+  if (error) {
+    return <div>Error: {error.message}</div>;
+  }
+  
   return (
     <div className="container mx-auto py-10">
       <Tabs defaultValue="create" className="w-full">

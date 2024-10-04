@@ -9,43 +9,66 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Edit, Trash, Search } from 'lucide-react'
-
-// Mock data for subjects and related entities - replace with actual data fetching
-const initialSubjects = [
-  { id: 1, name: "Introduction to Programming", code: "CS101", description: "Basic programming concepts", creditHours: 3, batch: "2023", course: "Computer Science", semester: "Fall 2023" },
-  { id: 2, name: "Calculus I", code: "MATH201", description: "Fundamental calculus concepts", creditHours: 4, batch: "2023", course: "Mathematics", semester: "Fall 2023" },
-]
-
-const batches = ["2022", "2023", "2024"]
-const courses = ["Computer Science", "Mathematics", "Physics", "Biology"]
-const semesters = ["Fall 2023", "Spring 2024", "Fall 2024"]
+import { fetchSubjects, addSubject, updateSubject, deleteSubject, fetchBatches, fetchCourses, fetchSemesters } from '@/lib/api';
 
 export default function SubjectPage() {
-  const [subjects, setSubjects] = useState(initialSubjects)
-  const [editingSubject, setEditingSubject] = useState(null)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [filteredSubjects, setFilteredSubjects] = useState(subjects)
+  const queryClient = useQueryClient();
+  const { data: subjects, error: subjectsError, isLoading: isLoadingSubjects } = useQuery(['subjects'], fetchSubjects);
+  const { data: batches, error: batchesError, isLoading: isLoadingBatches } = useQuery(['batches'], fetchBatches);
+  const { data: courses, error: coursesError, isLoading: isLoadingCourses } = useQuery(['courses'], fetchCourses);
+  const { data: semesters, error: semestersError, isLoading: isLoadingSemesters } = useQuery(['semesters'], fetchSemesters);
+  const [editingSubject, setEditingSubject] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filteredSubjects, setFilteredSubjects] = useState([]);
 
   useEffect(() => {
-    const results = subjects.filter(subject =>
-      Object.values(subject).some(value => 
-        value.toString().toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    )
-    setFilteredSubjects(results)
-  }, [subjects, searchTerm])
+    if (subjects) {
+      const results = subjects.filter(subject =>
+        Object.values(subject).some(value => 
+          value.toString().toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      );
+      setFilteredSubjects(results);
+    }
+  }, [subjects, searchTerm]);
+
+  const addSubjectMutation = useMutation(addSubject, {
+    onSuccess: () => {
+      queryClient.invalidateQueries(['subjects']);
+    },
+  });
+
+  const updateSubjectMutation = useMutation(updateSubject, {
+    onSuccess: () => {
+      queryClient.invalidateQueries(['subjects']);
+    },
+  });
+
+  const deleteSubjectMutation = useMutation(deleteSubject, {
+    onSuccess: () => {
+      queryClient.invalidateQueries(['subjects']);
+    },
+  });
 
   const handleCreateSubject = (newSubject) => {
-    setSubjects([...subjects, { ...newSubject, id: subjects.length + 1 }])
-  }
+    addSubjectMutation.mutate(newSubject);
+  };
 
   const handleEditSubject = (editedSubject) => {
-    setSubjects(subjects.map(subject => subject.id === editedSubject.id ? editedSubject : subject))
-    setEditingSubject(null)
-  }
+    updateSubjectMutation.mutate(editedSubject);
+    setEditingSubject(null);
+  };
 
   const handleDeleteSubject = (subjectId) => {
-    setSubjects(subjects.filter(subject => subject.id !== subjectId))
+    deleteSubjectMutation.mutate(subjectId);
+  };
+
+  if (isLoadingSubjects || isLoadingBatches || isLoadingCourses || isLoadingSemesters) {
+    return <div>Loading...</div>;
+  }
+
+  if (subjectsError || batchesError || coursesError || semestersError) {
+    return <div>Error: {subjectsError?.message || batchesError?.message || coursesError?.message || semestersError?.message}</div>;
   }
 
   return (

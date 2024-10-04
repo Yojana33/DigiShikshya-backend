@@ -9,30 +9,51 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Edit, Trash } from 'lucide-react'
-
-// Mock data for semesters and courses - replace with actual data fetching
-const initialSemesters = [
-  { id: 1, name: "Fall 2023", startDate: "2023-09-01", endDate: "2023-12-15", course: "Computer Science" },
-  { id: 2, name: "Spring 2024", startDate: "2024-01-15", endDate: "2024-05-30", course: "Mathematics" },
-]
-
-const courses = ["Computer Science", "Mathematics", "Physics", "Biology"]
+import { fetchSemesters, addSemester, updateSemester, deleteSemester, fetchCourses } from '@/lib/api';
 
 export default function SemesterPage() {
-  const [semesters, setSemesters] = useState(initialSemesters)
-  const [editingSemester, setEditingSemester] = useState(null)
+  const queryClient = useQueryClient();
+  const { data: semesters, error: semestersError, isLoading: isLoadingSemesters } = useQuery(['semesters'], fetchSemesters);
+  const { data: courses, error: coursesError, isLoading: isLoadingCourses } = useQuery(['courses'], fetchCourses);
+  const [editingSemester, setEditingSemester] = useState(null);
+
+  const addSemesterMutation = useMutation(addSemester, {
+    onSuccess: () => {
+      queryClient.invalidateQueries(['semesters']);
+    },
+  });
+
+  const updateSemesterMutation = useMutation(updateSemester, {
+    onSuccess: () => {
+      queryClient.invalidateQueries(['semesters']);
+    },
+  });
+
+  const deleteSemesterMutation = useMutation(deleteSemester, {
+    onSuccess: () => {
+      queryClient.invalidateQueries(['semesters']);
+    },
+  });
 
   const handleCreateSemester = (newSemester) => {
-    setSemesters([...semesters, { ...newSemester, id: semesters.length + 1 }])
-  }
+    addSemesterMutation.mutate(newSemester);
+  };
 
   const handleEditSemester = (editedSemester) => {
-    setSemesters(semesters.map(semester => semester.id === editedSemester.id ? editedSemester : semester))
-    setEditingSemester(null)
-  }
+    updateSemesterMutation.mutate(editedSemester);
+    setEditingSemester(null);
+  };
 
   const handleDeleteSemester = (semesterId) => {
-    setSemesters(semesters.filter(semester => semester.id !== semesterId))
+    deleteSemesterMutation.mutate(semesterId);
+  };
+
+  if (isLoadingSemesters || isLoadingCourses) {
+    return <div>Loading...</div>;
+  }
+
+  if (semestersError || coursesError) {
+    return <div>Error: {semestersError?.message || coursesError?.message}</div>;
   }
 
   return (

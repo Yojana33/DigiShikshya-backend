@@ -8,26 +8,40 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Bell, Search, Eye, FileText, Calendar } from 'lucide-react'
-
-// Mock data for assignments
-const assignments = [
-  { id: 1, title: 'React Hooks Essay', teacher: 'John Doe', batch: '2023', course: 'Computer Science', semester: '3rd', subject: 'Web Development', dueDate: '2023-06-15', description: 'Write a 1000-word essay on React Hooks and their benefits.' },
-  { id: 2, title: 'Data Structures Implementation', teacher: 'Jane Smith', batch: '2022', course: 'Computer Science', semester: '2nd', subject: 'Data Structures', dueDate: '2023-06-20', description: 'Implement a binary search tree in Python and analyze its time complexity.' },
-  { id: 3, title: 'Chemistry Lab Report', teacher: 'Alice Johnson', batch: '2023', course: 'Chemistry', semester: '1st', subject: 'General Chemistry', dueDate: '2023-06-18', description: 'Write a detailed lab report on the titration experiment conducted in class.' },
-  // Add more mock data as needed
-]
+import { fetchAssignments, addAssignment, updateAssignment, deleteAssignment } from '@/lib/api';
 
 export default function ViewAssignmentsPage() {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [selectedAssignment, setSelectedAssignment] = useState(null)
+  const queryClient = useQueryClient();
+  const { data: assignments, error, isLoading } = useQuery(['assignments'], fetchAssignments);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedAssignment, setSelectedAssignment] = useState(null);
 
-  const filteredAssignments = assignments.filter(assignment =>
+  const filteredAssignments = assignments?.filter(assignment =>
     Object.values(assignment).some(value =>
       value.toString().toLowerCase().includes(searchTerm.toLowerCase())
     )
-  )
+  );
 
   const renderPreview = (assignment) => {
+    return (
+      <div className="space-y-4">
+        <p><strong>Description:</strong> {assignment.description}</p>
+        <p><strong>Due Date:</strong> {assignment.dueDate}</p>
+        <p><strong>Teacher:</strong> {assignment.teacher}</p>
+        <p><strong>Course:</strong> {assignment.course}</p>
+        <p><strong>Semester:</strong> {assignment.semester}</p>
+        <p><strong>Subject:</strong> {assignment.subject}</p>
+      </div>
+    )
+  }
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error.message}</div>;
+  }
     return (
       <div className="space-y-4">
         <p><strong>Description:</strong> {assignment.description}</p>
@@ -130,4 +144,3 @@ export default function ViewAssignmentsPage() {
       </main>
     </div>
   )
-}
