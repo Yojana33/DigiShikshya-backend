@@ -35,9 +35,9 @@ public class AuthController : ControllerBase
         {
             HttpOnly = true,
             Secure = true, // Set to true in production
-            SameSite = SameSiteMode.Strict
+            SameSite = SameSiteMode.None
         });
-        return Ok(new { AccessToken = token.Item1, RefereshToken = token.Item2, Info = userData });
+        return Ok(new { AccessToken = token.Item1, RefreshToken = token.Item2, Info = userData });
     }
 
     [HttpPost("logout")]
