@@ -1,12 +1,13 @@
 using System;
 using System.Threading.Tasks;
+using DigiShikshya.Application.Services.Submission;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
 [Route("api/v1/submission")]
-public class SubmissionController(IMediator _mediator) : ControllerBase
+public class SubmissionController(IMediator _mediator,SubmissionService _submissionService) : ControllerBase
 {
     private readonly IMediator _mediator = _mediator;
 
@@ -49,8 +50,8 @@ public class SubmissionController(IMediator _mediator) : ControllerBase
     {
         try
         {
-            var hasSimilarities = await _submissionService.CheckForSimilarities(request.SubmittedFile, request.StudentEmail);
-            if (hasSimilarities)
+            var hasSimilarities = await _submissionService.CheckForSimilaritiesAsync(request.AssignmentId);
+            if (hasSimilarities.Count > 0)
             {
                 return Ok(new { message = "Plagiarism detected." });
             }

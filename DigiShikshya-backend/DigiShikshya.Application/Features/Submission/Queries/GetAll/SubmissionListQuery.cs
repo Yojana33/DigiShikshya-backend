@@ -5,4 +5,6 @@ public class SubmissionListQuery : IRequest<PaginatedResult<SubmissionListRespon
     public int Page = 1;
     public int PageSize = 10;
 
+    public Guid AssignmentId { get; set; }
+
 }

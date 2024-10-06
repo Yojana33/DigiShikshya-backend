@@ -17,27 +17,41 @@ namespace DigiShikshya.Application.Services.Submission
             _emailService = emailService;
         }
 
-        public async Task<bool> CheckForSimilaritiesAsync(string newSubmissionContent, string studentEmail)
+        public async Task<List<object>> CheckForSimilaritiesAsync(Guid id)
+    {
+        var submissions = await _submissionRepository.GetAllSubmissions(new SubmissionListQuery { AssignmentId = id });
+        var ahoCorasick = new AhoCorasick();
+
+        // Build the Aho-Corasick trie with all submissions
+        foreach (var submission in submissions.Items!)
         {
-            var submissions = await _submissionRepository.GetAllSubmissions(request.SubmittedFile, request.StudentEmail);
-            var ahoCorasick = new AhoCorasick();
-
-            foreach (var submission in submissions)
-            {
-                ahoCorasick.AddPattern(submission.Content);
-            }
-            ahoCorasick.Build();
-
-            var similarities = ahoCorasick.Search(newSubmissionContent);
-            var similarityPercentage = (double)similarities.Count / newSubmissionContent.Length * 100;
-
-            if (similarityPercentage > 60)
-            {
-                await _emailService.SendEmailAsync(studentEmail, "Plagiarism Alert", "Your submission has exceeded the plagiarism threshold.");
-                return true;
-            }
-
-            return false;
+            ahoCorasick.AddPattern(submission.SubmittedFile!);
         }
+        ahoCorasick.Build();
+
+        List<object> similarSubmissions = [];
+        // Compare each submission against all others
+        foreach (var submission in submissions.Items)
+        {
+            int totalMatches = 0;
+            foreach (var otherSubmission in submissions.Items)
+            {
+                if (submission.Id != otherSubmission.Id)
+                {
+                    var matches = ahoCorasick.Search(otherSubmission.SubmittedFile!);
+                    totalMatches += matches.Count;
+                }
+            }
+
+            // Calculate similarity percentage
+            double similarityPercentage = (double)totalMatches / (submissions.TotalCount - 1);
+            if (similarityPercentage > 0.6)
+            {
+                similarSubmissions.Add(submission.StudentId);
+            }
+        }
+
+        return similarSubmissions;
+    }
     }
 }

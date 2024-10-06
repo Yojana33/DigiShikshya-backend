@@ -1,180 +1,51 @@
-import axiosInstance from '@/config/axiosconfig';
+// Batch Endpoints
+export const fetchBatches = '/api/v1/batch/all';
+export const addBatch = '/api/v1/batch/add';
+export const updateBatch = '/api/v1/batch/update';
+export const deleteBatch = '/api/v1/batch';
 
-export const fetchBatches = async () => {
-  const response = await axiosInstance.get('/api/v1/batch/all');
-  return response.data;
-};
+// Course Endpoints
+export const fetchCourses = '/api/v1/course/all';
+export const addCourse = '/api/v1/course/add';
+export const updateCourse = '/api/v1/course/update';
+export const deleteCourse = '/api/v1/course';
 
-export const addBatch = async (batch) => {
-  const response = await axiosInstance.post('/api/v1/batch/add', batch);
-  return response.data;
-};
+// Semester Endpoints
+export const fetchSemesters = '/api/v1/semester/all';
+export const addSemester = '/api/v1/semester/add';
+export const updateSemester = '/api/v1/semester/update';
+export const deleteSemester = '/api/v1/semester';
 
-export const updateBatch = async (batch) => {
-  const response = await axiosInstance.put(`/api/v1/batch/update`, batch);
-  return response.data;
-};
+// Enrollment Endpoints
+export const fetchEnrollments = '/api/v1/enrollment/all';
+export const addEnrollment = '/api/v1/enrollment/enroll';
+export const updateEnrollment = '/api/v1/enrollment/update';
+export const deleteEnrollment = '/api/v1/enrollment/delete';
 
-export const deleteBatch = async (batchId) => {
-  const response = await axiosInstance.delete(`/api/v1/batch/${id}`);
-  return response.data;
-};
+// Subject Endpoints
+export const fetchSubjects = '/api/v1/subject/all';
+export const addSubject = '/api/v1/subject/add';
+export const updateSubject = '/api/v1/subject/update';
+export const deleteSubject = '/api/v1/subject/delete';
 
-export const fetchCourses = async () => {
-  const response = await axiosInstance.get('/api/v1/course/all');
-  return response.data;
-};
+// Teacher Assignment Endpoints
+export const fetchTeacherAssignments = '/api/v1/teacher-assign/all';
+export const addTeacherAssignment = '/api/v1/teacher-assign/assign';
+export const updateTeacherAssignment = '/api/v1/teacher-assign/update';
+export const deleteTeacherAssignment = '/api/v1/teacher-assign/delete';
 
-export const addCourse = async (course) => {
-  const response = await axiosInstance.post('/api/v1/course/add', course);
-  return response.data;
-};
+// Material Endpoints
+export const fetchMaterials = '/api/v1/material/all';
+export const addMaterial = '/api/v1/material/add';
+export const updateMaterial = '/api/v1/material/update';
+export const deleteMaterial = '/api/v1/material/delete';
 
-export const updateCourse = async (course) => {
-  const response = await axiosInstance.put(`/api/v1/course/update`, course);
-  return response.data;
-};
+// Assignment Endpoints
+export const getAssignments = '/api/v1/assignmen/all';
+export const addAssignment = '/api/v1/assignment/add';
+export const updateAssignment = '/api/v1/assignment/update';
+export const deleteAssignment = '/api/v1/assignment';
 
-export const deleteCourse = async (courseId) => {
-  const response = await axiosInstance.delete(`/api/v1/course/${id}`);
-  return response.data;
-};
-
-
-export const fetchSemesters = async () => {
-  const response = await axiosInstance.get('/api/v1/semester/all');
-  return response.data;
-};
-
-export const addSemester = async (semester) => {
-  const response = await axiosInstance.post('/api/v1/semester/add', semester);
-  return response.data;
-};
-
-export const updateSemester = async (semester) => {
-  const response = await axiosInstance.put(`/api/v1/semester/update`, semester);
-  return response.data;
-};
-
-export const deleteSemester = async (semesterId) => {
-  const response = await axiosInstance.delete(`/api/v1/semester/${id}`);
-  return response.data;
-};
-export const fetchEnrollments = async () => {
-  const response = await axiosInstance.get('/api/v1/enrollment/all');
-  return response.data;
-};
-
-export const addEnrollment = async (enrollment) => {
-  const response = await axiosInstance.post('/api/v1/enrollment/enroll', enrollment);
-  return response.data;
-};
-
-export const updateEnrollment = async (enrollment) => {
-  const response = await axiosInstance.put(`/api/v1/enrollment/update`, enrollment);
-  return response.data;
-};
-
-export const deleteEnrollment = async (enrollmentId) => {
-  const response = await axiosInstance.delete(`/api/v1/enrollment/delete`);
-  return response.data;
-};
-// export const fetchStudents = async () => {
-//   const response = await axiosInstance.get('/api/v1/students');
-//   return response.data;
-// }; //api for this is not available
-export const fetchSubjects = async () => {
-  const response = await axiosInstance.get('/api/v1/subject/all');
-  return response.data;
-};
-
-export const addSubject = async (subject) => {
-  const response = await axiosInstance.post('/api/v1/subject/add', subject);
-  return response.data;
-};
-
-export const updateSubject = async (subject) => {
-  const response = await axiosInstance.put(`/api/v1/subject/update`, subject);
-  return response.data;
-};
-
-export const deleteSubject = async (subjectId) => {
-  const response = await axiosInstance.delete(`/api/v1/subject/delete`);
-  return response.data;
-};
-export const fetchTeacherAssignments = async () => {
-  const response = await axiosInstance.get('/api/v1/teacher-assign/all');
-  return response.data;
-};
-
-export const addTeacherAssignment = async (assignment) => {
-  const response = await axiosInstance.post('/api/v1/teacher-assign/assign', assignment);
-  return response.data;
-};
-
-export const updateTeacherAssignment = async (assignment) => {
-  const response = await axiosInstance.put(`/api/v1/teacher-assign/update`, assignment);
-  return response.data;
-};
-
-export const deleteTeacherAssignment = async (assignmentId) => {
-  const response = await axiosInstance.delete(`/api/v1/teacher-assign/delete`);
-  return response.data;
-};
-export const fetchMaterials = async () => {
-  const response = await axiosInstance.get('/api/v1/material/all');
-  return response.data;
-};
-
-export const addMaterial = async (material) => {
-  const response = await axiosInstance.post('/api/v1/material/add', material);
-  return response.data;
-};
-
-export const updateMaterial = async (material) => {
-  const response = await axiosInstance.put(`/api/v1/material/update`, material);
-  return response.data;
-};
-
-export const deleteMaterial = async (materialId) => {
-  const response = await axiosInstance.delete(`/api/v1/material/delete/${id}`);
-  return response.data;
-};
-export const fetchAssignments = async () => {
-  const response = await axiosInstance.get('/api/v1/assignmen/all');
-  return response.data;
-};
-
-export const addAssignment = async (assignment) => {
-  const response = await axiosInstance.post('/api/v1/assignment/add', assignment);
-  return response.data;
-};
-
-export const updateAssignment = async (assignment) => {
-  const response = await axiosInstance.put(`/api/v1/assignment/update`, assignment);
-  return response.data;
-};
-
-export const deleteAssignment = async (assignmentId) => {
-  const response = await axiosInstance.delete(`/api/v1/assignment/${id}`);
-  return response.data;
-};
-export const fetchSubmissions = async () => {
-  const response = await axiosInstance.get('/api/v1/submission/all');
-  return response.data;
-};
-
-export const addSubmission = async (submission) => {
-  const response = await axiosInstance.post('/api/v1/submission/add', submission);
-  return response.data;
-};
-
-// export const updateSubmission = async (submission) => {
-//   const response = await axiosInstance.put(`/api/v1/submission/${submission.id}`, submission);
-//   return response.data;
-// };
-
-// export const deleteSubmission = async (submissionId) => {
-//   const response = await axiosInstance.delete(`/api/v1/submission/${submissionId}`);
-//   return response.data;
-// };
+// Submission Endpoints
+export const fetchSubmissions = '/api/v1/submission/all';
+export const addSubmission = '/api/v1/submission/add';

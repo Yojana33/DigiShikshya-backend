@@ -7,21 +7,32 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Bell, Search, Eye, FileText, Calendar } from 'lucide-react'
-import { fetchAssignments, addAssignment, updateAssignment, deleteAssignment } from '@/lib/api';
+import { Bell, Search, Eye } from 'lucide-react'
+import axios from 'axios'
+import { useQuery } from '@tanstack/react-query'
+import { getAssignments } from '@/lib/api'
 
 export default function ViewAssignmentsPage() {
-  const queryClient = useQueryClient();
-  const { data: assignments, error, isLoading } = useQuery(['assignments'], fetchAssignments);
+
+  // Fetch assignments API call within the page
+  const fetchAssignments = async () => {
+    const { data } = await axios.get(getAssignments); // Replace with your actual API URL
+    return data;
+  }
+
+  // Use react-query to handle the fetched data
+  const { data: assignmentData, error, isLoading } = useQuery(['assignments'], fetchAssignments);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedAssignment, setSelectedAssignment] = useState(null);
 
-  const filteredAssignments = assignments?.filter(assignment =>
+  // Filter assignments based on search term
+  const filteredAssignments = assignmentData?.filter(assignment =>
     Object.values(assignment).some(value =>
       value.toString().toLowerCase().includes(searchTerm.toLowerCase())
     )
   );
 
+  // Render assignment preview
   const renderPreview = (assignment) => {
     return (
       <div className="space-y-4">
@@ -35,23 +46,13 @@ export default function ViewAssignmentsPage() {
     )
   }
 
+  // Handle loading and error states
   if (isLoading) {
     return <div>Loading...</div>;
   }
 
   if (error) {
     return <div>Error: {error.message}</div>;
-  }
-    return (
-      <div className="space-y-4">
-        <p><strong>Description:</strong> {assignment.description}</p>
-        <p><strong>Due Date:</strong> {assignment.dueDate}</p>
-        <p><strong>Teacher:</strong> {assignment.teacher}</p>
-        <p><strong>Course:</strong> {assignment.course}</p>
-        <p><strong>Semester:</strong> {assignment.semester}</p>
-        <p><strong>Subject:</strong> {assignment.subject}</p>
-      </div>
-    )
   }
 
   return (
@@ -104,7 +105,7 @@ export default function ViewAssignmentsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredAssignments.map((assignment) => (
+                    {filteredAssignments?.map((assignment) => (
                       <TableRow key={assignment.id}>
                         <TableCell>{assignment.title}</TableCell>
                         <TableCell>{assignment.teacher}</TableCell>
@@ -143,4 +144,5 @@ export default function ViewAssignmentsPage() {
         </div>
       </main>
     </div>
-  )
+  );
+}
