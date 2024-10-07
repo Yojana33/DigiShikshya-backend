@@ -81,7 +81,9 @@ namespace DigiShikshya.Infrastructure.Algorithms
                 results.AddRange(node.Outputs);
             }
 
-            return results;
+            //return results;
+            return results.Distinct().ToList();
+
         }
     }
 }
