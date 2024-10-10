@@ -24,6 +24,7 @@ public class CourseController(IMediator _mediator) : ControllerBase
 
     [HttpGet("all")]
     [Authorize(Policy = "StudentPolicy")]
+    [Authorize(Policy = "AdminPolicy")]
 
     public async Task<IActionResult> GetAllCourses([FromQuery] CourseListQuery request)
     {
@@ -40,6 +41,7 @@ public class CourseController(IMediator _mediator) : ControllerBase
 
 
     [HttpPatch("update")]
+    [Authorize(Policy = "AdminPolicy")]
 
     public async Task<IActionResult> UpdateCourse([FromBody] UpdateCourse request)
     {
@@ -55,6 +57,7 @@ public class CourseController(IMediator _mediator) : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Policy = "AdminPolicy")]
     public async Task<IActionResult> DeleteCourse(Guid id)
     {
         var request = new DeleteCourse { Id = id };
