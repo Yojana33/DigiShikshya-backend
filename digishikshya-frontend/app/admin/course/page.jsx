@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { useState } from 'react'
 import { Button } from "@/components/ui/button"
@@ -10,11 +10,18 @@ import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Edit, Trash } from 'lucide-react'
 import { fetchCourses, addCourse, updateCourse, deleteCourse } from '@/lib/api';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import axiosInstance from '@/config/axiosconfig'
+
 
 export default function CoursePage() {
   const queryClient = useQueryClient();
-  const { data: courses, error, isLoading } = useQuery(['courses'], fetchCourses);
-  const [editingCourse, setEditingCourse] = useState(null);
+
+  // Fetch batches data from API
+  const { data: courses, error, isLoading } = useQuery(['courses'], async () => {
+    const response = await axiosInstance.get(fetchCourses);
+    return response.data.items;  // Correcting the API response to return items directly
+  });
 
   const addCourseMutation = useMutation(addCourse, {
     onSuccess: () => {
