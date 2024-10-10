@@ -4,9 +4,12 @@ import { useRouter } from 'next/navigation';
 import AdminSidebar from './sidebar/page';
 import { Button } from "@/components/ui/button";
 import { Menu } from 'lucide-react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 export default function AdminLayout({ children }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const queryClient = new QueryClient();
+
   const router = useRouter();
   const currentPath = router.pathname;
 
@@ -29,11 +32,14 @@ export default function AdminLayout({ children }) {
        <Menu className="h-5 w-5" />
        </div>
       </Button>
+      <QueryClientProvider client={queryClient}>
+
       <main className="flex-1 p-4">
         <div className="space-y-4">
           {children}
         </div>
       </main>
+      </QueryClientProvider>
     </div>
   );
 }

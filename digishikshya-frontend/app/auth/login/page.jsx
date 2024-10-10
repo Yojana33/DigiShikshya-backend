@@ -1,80 +1,82 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Separator } from "@/components/ui/separator"
-import Link from 'next/link'
-import { BookOpen, Loader2, Github, Mail } from 'lucide-react'
-import Cookies from 'js-cookie'
-import axiosInstance from '@/config/axiosconfig'
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Separator } from "@/components/ui/separator";
+import Link from 'next/link';
+import { BookOpen, Loader2, Github, Mail } from 'lucide-react';
+import axiosInstance from '@/config/axiosconfig';
+
 export default function LoginPage() {
-  const [username, setUserName] = useState('')
-  const [password, setPassword] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [username, setUserName] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const router = useRouter()
-
+  const router = useRouter();
+  
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
-    console.log('Logging in with email and password');
 
     try {
       const response = await axiosInstance.post('/login', { username, password });
-      const { AccessToken, RefereshToken, info } = response.data;
-      const { id, role } = info;
+      const { info } = response.data;
 
-      localStorage.setItem('userId', id);
-      localStorage.setItem('userRoles', JSON.stringify(role));      // Store tokens in cookies
-      Cookies.set('AccessToken', AccessToken, { secure: true, sameSite: 'Strict', path: '/' });
-      Cookies.set('RefreshToken', RefereshToken, { secure: true, sameSite: 'Strict', path: '/' });
-
-      // Extract roles from the login response
-      const roles = info.roles;
+      // Store user info in localStorage
+      localStorage.setItem('userId', info.id);
+      localStorage.setItem('userRoles', JSON.stringify(info.roles));
 
       // Role-based redirection
-      if (roles.includes('Admin')) {
-        router.push('/admin/dashboard');  // Route to Admin dashboard
-      } else if (roles.includes('Teacher')) {
-        router.push('/teacher/dashboard');  // Route to Teacher dashboard
-      } else if (roles.includes('Student')) {
-        router.push('/student/dashboard');  // Route to Student dashboard
+      if (info.roles.includes('Admin')) {
+        router.push('/admin/dashboard');
+      } else if (info.roles.includes('Teacher')) {
+        router.push('/teacher/dashboard');
+      } else if (info.roles.includes('Student')) {
+        router.push('/student/dashboard');
       } else {
-        router.push('/dashboard');  // Default dashboard if no specific role found
+        router.push('/dashboard');
       }
-      
     } catch (error) {
-      setError('Login failed. Please check your credentials and try again.');
+      if (error.response) {
+        // Handle response errors
+        setError(error.response.data || 'Login failed. Please check your credentials and try again.');
+      } else if (error.request) {
+        // Handle no response error
+        setError('No response from server. Please try again later.');
+      } else {
+        // General error
+        setError('An error occurred. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleSocialLogin = async (provider) => {
-    setIsLoading(true)
-    setError('')
+    setIsLoading(true);
+    setError('');
 
     try {
       // Simulating an API call for social login
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
       // Mock social authentication logic (replace with actual authentication)
-      console.log(`Logging in with ${provider}`)
+      console.log(`Logging in with ${provider}`);
       // For demo purposes, we'll just redirect to the student dashboard
-      router.push('/student/dashboard')
+      router.push('/student/dashboard');
     } catch (err) {
-      setError(`${provider} login failed. Please try again.`)
+      setError(`${provider} login failed. Please try again.`);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-100 to-white flex flex-col justify-center items-center p-4">
@@ -122,7 +124,7 @@ export default function LoginPage() {
                 Username
               </Label>
               <Input
-                type="username"
+                type="text"
                 id="username"
                 value={username}
                 onChange={(e) => setUserName(e.target.value)}

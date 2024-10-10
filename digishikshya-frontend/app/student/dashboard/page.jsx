@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Progress } from "@/components/ui/progress"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Bell, Menu, BookOpen, FileText, Calendar, ArrowRight, BarChart2, CheckCircle2 } from 'lucide-react'
+import { Bell, BookOpen, FileText, Calendar, ArrowRight, BarChart2, CheckCircle2 } from 'lucide-react'
 
 // Mock data - replace with actual data fetching
 const studentData = {

@@ -9,12 +9,20 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Edit, Trash } from 'lucide-react'
-import { fetchBatches, addBatch, updateBatch, deleteBatch } from '@/lib/api';
-
+import { fetchBatches, addBatch, updateBatch, deleteBatch } from '@/lib/api'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import axiosInstance from '@/config/axiosconfig'
 
 export default function BatchPage() {
- const queryClient = useQueryClient();
-  const { data: batches, error, isLoading } = useQuery(['batches'], fetchBatches);
+  const queryClient = useQueryClient();
+
+  // Fetch batches data from API
+  const { data: batches, error, isLoading } = useQuery(['batches'], async () => {
+    const response = await axiosInstance.get(fetchBatches);
+    return response.data.items;  // Correcting the API response to return items directly
+  });
+
+  // Add, update, delete mutations for batches
   const addMutation = useMutation(addBatch, {
     onSuccess: () => queryClient.invalidateQueries(['batches']),
   });
@@ -40,6 +48,7 @@ export default function BatchPage() {
     deleteMutation.mutate(batchId);
   };
 
+  // Handling loading and error states
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -60,7 +69,7 @@ export default function BatchPage() {
         </TabsContent>
         <TabsContent value="view">
           <BatchList 
-            batches={batches} 
+            batches={batches} // Correct batches passed directly from useQuery result
             onEdit={setEditingBatch} 
             onDelete={handleDeleteBatch} 
           />
@@ -81,23 +90,23 @@ export default function BatchPage() {
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }
 
 function CreateBatchForm({ onCreateBatch }) {
-  const [name, setName] = useState('')
-  const [startDate, setStartDate] = useState('')
-  const [endDate, setEndDate] = useState('')
-  const [status, setStatus] = useState('running')
+  const [name, setName] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [status, setStatus] = useState('0');  // Default status to "0" (Running)
 
   const handleSubmit = (e) => {
-    e.preventDefault()
-    onCreateBatch({ name, startDate, endDate, status })
-    setName('')
-    setStartDate('')
-    setEndDate('')
-    setStatus('running')
-  }
+    e.preventDefault();
+    onCreateBatch({ batchName: name, startDate, endDate, status: parseInt(status) });
+    setName('');
+    setStartDate('');
+    setEndDate('');
+    setStatus('0');
+  };
 
   return (
     <Card>
@@ -143,8 +152,8 @@ function CreateBatchForm({ onCreateBatch }) {
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="running">Running</SelectItem>
-                <SelectItem value="passout">Passout</SelectItem>
+                <SelectItem value="0">Running</SelectItem>
+                <SelectItem value="1">Passout</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -152,17 +161,26 @@ function CreateBatchForm({ onCreateBatch }) {
         </form>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 function BatchList({ batches, onEdit, onDelete }) {
+  const statusMapping = {
+    0: "Running",
+    1: "Passout"
+  };
+
+  if (!batches || batches.length === 0) {
+    return <div>No batches available</div>;
+  }
+
   return (
     <div className="space-y-4">
       {batches.map((batch) => (
         <Card key={batch.id}>
           <CardHeader>
             <div className="flex justify-between items-center">
-              <CardTitle>{batch.name}</CardTitle>
+              <CardTitle> Batch{batch.batchName}</CardTitle>
               <div className="space-x-2">
                 <Button variant="outline" size="icon" onClick={() => onEdit(batch)}>
                   <Edit className="h-4 w-4" />
@@ -179,34 +197,40 @@ function BatchList({ batches, onEdit, onDelete }) {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm font-medium">Start Date:</p>
-                <p>{batch.startDate}</p>
+                <p>{new Date(batch.startDate).toLocaleDateString()}</p>
               </div>
               <div>
                 <p className="text-sm font-medium">End Date:</p>
-                <p>{batch.endDate}</p>
+                <p>{new Date(batch.endDate).toLocaleDateString()}</p>
               </div>
               <div>
                 <p className="text-sm font-medium">Status:</p>
-                <p className="capitalize">{batch.status}</p>
+                <p className="capitalize">{statusMapping[batch.status]}</p>
               </div>
             </div>
           </CardContent>
         </Card>
       ))}
     </div>
-  )
+  );
 }
 
 function EditBatchForm({ batch, onSave }) {
-  const [name, setName] = useState(batch.name)
-  const [startDate, setStartDate] = useState(batch.startDate)
-  const [endDate, setEndDate] = useState(batch.endDate)
-  const [status, setStatus] = useState(batch.status)
+  const [name, setName] = useState(batch.batchName);
+  const [startDate, setStartDate] = useState(batch.startDate);
+  const [endDate, setEndDate] = useState(batch.endDate);
+  const [status, setStatus] = useState(batch.status.toString());  // Convert to string for Select component
 
   const handleSubmit = (e) => {
-    e.preventDefault()
-    onSave({ ...batch, name, startDate, endDate, status })
-  }
+    e.preventDefault();
+    onSave({ 
+      ...batch, 
+      batchName: name, 
+      startDate, 
+      endDate, 
+      status: parseInt(status)  // Convert back to integer
+    });
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -246,8 +270,8 @@ function EditBatchForm({ batch, onSave }) {
             <SelectValue placeholder="Select status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="running">Running</SelectItem>
-            <SelectItem value="passout">Passout</SelectItem>
+            <SelectItem value="0">Running</SelectItem>
+            <SelectItem value="1">Passout</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -255,5 +279,5 @@ function EditBatchForm({ batch, onSave }) {
         <Button type="submit">Save changes</Button>
       </DialogFooter>
     </form>
-  )
+  );
 }

@@ -1,83 +1,107 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { Button } from "@/components/ui/button"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   BookOpen,
   LayoutDashboard,
   BookCopy,
   FileText,
-  Calendar,
   MessageSquare,
   Settings,
   LogOut,
   Menu
-} from 'lucide-react'
-import axios from 'axios'
-import Cookies from 'js-cookie'
+} from 'lucide-react';
+import axios from 'axios';
 
 export default function StudentSidebar({ currentPath, onLinkClick }) {
-  const router = useRouter()
+  const router = useRouter();
+
+  console.log(currentPath, "currentPath");
 
   const handleLogout = () => {
     axios.post('/logout')
       .then(() => {
-        Cookies.remove('AccessToken')
-        Cookies.remove('RefreshToken')
-        router.push('/')
+        router.push('/');
       })
       .catch(() => {
-        router.push('/')
-      })
-  }
+        router.push('/');
+      });
+  };
 
   return (
-    <div className="flex h-screen">
-      <div className="flex flex-col w-64 bg-gray-100">
-        <div className="flex items-center justify-start mb-6">
-          <BookOpen className="h-6 w-6 text-blue-600 mr-2" />
-          <span className="text-xl font-bold text-gray-800">DigiShikshya</span>
-        </div>
-        <ScrollArea className="flex-grow">
-          <nav className="space-y-2">
-            <Link href="/student/dashboard" className={`flex items-center p-2 rounded-lg ${currentPath === '/student/dashboard' ? 'bg-gray-200 text-gray-900' : 'text-gray-700 hover:bg-gray-200'}`} onClick={onLinkClick}>
-              <LayoutDashboard className="h-5 w-5 mr-3" />
-              Dashboard
-            </Link>
-            <Link href="/student/subjects" className={`flex items-center p-2 rounded-lg ${currentPath === '/student/subjects' ? 'bg-gray-200 text-gray-900' : 'text-gray-700 hover:bg-gray-200'}`} onClick={onLinkClick}>
-              <BookCopy className="h-5 w-5 mr-3" />
-              Subjects
-            </Link>
-            <Link href="/student/assignments" className={`flex items-center p-2 rounded-lg ${currentPath === '/student/assignments' ? 'bg-gray-200 text-gray-900' : 'text-gray-700 hover:bg-gray-200'}`} onClick={onLinkClick}>
-              <FileText className="h-5 w-5 mr-3" />
-              Assignments
-            </Link>
-            {/* <Link href="/student/schedule" className={`flex items-center p-2 rounded-lg ${currentPath === '/student/schedule' ? 'bg-gray-200 text-gray-900' : 'text-gray-700 hover:bg-gray-200'}`} onClick={onLinkClick}>
-              <Calendar className="h-5 w-5 mr-3" />
-              Schedule
-            </Link> */}
-            <Link href="/student/chatbox" className={`flex items-center p-2 rounded-lg ${currentPath === '/student/chatbox' ? 'bg-gray-200 text-gray-900' : 'text-gray-700 hover:bg-gray-200'}`} onClick={onLinkClick}>
-              <MessageSquare className="h-5 w-5 mr-3" />
-              Chatbox
-            </Link>
-            <Link href="/student/settings" className={`flex items-center p-2 rounded-lg ${currentPath === '/student/settings' ? 'bg-gray-200 text-gray-900' : 'text-gray-700 hover:bg-gray-200'}`} onClick={onLinkClick}>
-              <Settings className="h-5 w-5 mr-3" />
-              Settings
-            </Link>
-          </nav>
-        </ScrollArea>
-        <Button
-          variant="ghost"
-          className="mt-4 w-full justify-start text-red-600 hover:bg-red-100 hover:text-red-700"
-          onClick={handleLogout}
-        >
-          <LogOut className="h-5 w-5 mr-3" />
-          Logout
-        </Button>
+    <div className="flex h-full flex-col ">
+      {/* Header */}
+      <div className="flex items-center  justify-center mb-10 mt-8 px-4 ">
+        <BookOpen className="h-8 w-8 text-blue-400 mr-2" />
+        <span className="text-2xl font-bold text-white">DigiShikshya</span>
       </div>
+
+      <ScrollArea className="flex ">
+        <nav className="space-y-3  ">
+          <SidebarLink
+            href="/student/dashboard"
+            label="Dashboard"
+            icon={<LayoutDashboard className="h-5 w-5 mr-3" />}
+            isActive={currentPath === '/student/dashboard'}
+            onClick={onLinkClick}
+          /> 
+          <SidebarLink
+            href="/student/subjects"
+            label="Subjects"
+            icon={<BookCopy className="h-5 w-5 mr-3" />}
+            isActive={currentPath === '/student/subjects'}
+            onClick={onLinkClick}
+          />
+          <SidebarLink
+            href="/student/assignments"
+            label="Assignments"
+            icon={<FileText className="h-5 w-5 mr-3" />}
+            isActive={currentPath === '/student/assignments'}
+            onClick={onLinkClick}
+          />
+          <SidebarLink
+            href="/student/chatbox"
+            label="Chatbox"
+            icon={<MessageSquare className="h-5 w-5 mr-3" />}
+            isActive={currentPath === '/student/chatbox'}
+            onClick={onLinkClick}
+          />
+          <SidebarLink
+            href="/student/settings"
+            label="Settings"
+            icon={<Settings className="h-5 w-5 mr-3" />}
+            isActive={currentPath === '/student/settings'}
+            onClick={onLinkClick}
+          />
+        </nav>
+      </ScrollArea>
+
+      <Button
+        variant="ghost"
+        className="mt-6 w-full justify-start text-red-600 hover:bg-red-100 hover:text-red-700 transition-all duration-300 ease-in-out"
+        onClick={handleLogout}
+      >
+        <LogOut className="h-5 w-5 mr-3" />
+        Logout
+      </Button>
     </div>
-  )
+  );
+}
+
+function SidebarLink({ href, label, icon, isActive, onClick }) {
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      className={`flex items-center p-3 rounded-lg  transition-colors duration-300 ease-in-out
+      ${isActive ? 'bg-gray-200 text-black' : 'text-gray-400 hover:bg-gray-700 hover:text-white'}`}
+    >
+      {icon}
+      <span className="text-sm font-medium">{label}</span>
+    </Link>
+  );
 }
