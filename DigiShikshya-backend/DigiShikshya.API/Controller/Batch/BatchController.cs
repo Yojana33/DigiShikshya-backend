@@ -14,6 +14,7 @@ public class BatchController(IMediator mediator) : ControllerBase
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [Authorize(Policy = "AdminPolicy")]
     public async Task<IActionResult> AddBatch(AddNewBatch request)
     {
         var response = await _mediator.Send(request);
@@ -28,6 +29,8 @@ public class BatchController(IMediator mediator) : ControllerBase
     }
 
     [HttpGet("all")]
+    [Authorize(Policy = "AdminPolicy")]
+
     public async Task<IActionResult> GetAllBatches([FromQuery] BatchListQuery request)
     {
         try
@@ -42,6 +45,10 @@ public class BatchController(IMediator mediator) : ControllerBase
     }
 
     [HttpPatch("update")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [Authorize(Policy = "AdminPolicy")]
 
     public async Task<IActionResult> UpdateBatch(UpdateBatch request)
     {
@@ -57,6 +64,10 @@ public class BatchController(IMediator mediator) : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [Authorize(Policy = "AdminPolicy")]
     public async Task<IActionResult> DeleteBatch(Guid id)
     {
         var request = new DeleteBatch { Id = id };
