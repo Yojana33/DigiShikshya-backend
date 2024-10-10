@@ -34,7 +34,7 @@ public class BatchRepository : IBatchRepository
 
     public async Task<bool> DeleteBatch(Guid id)
     {
-        var query = "DELETE FROM batch WHERE id = @Id";
+        var query = "DELETE FROM batch WHERE id = @Id CASCADE";
         var result = await _dbConnection.ExecuteAsync(query, new { Id = id });
         return result > 0;
 

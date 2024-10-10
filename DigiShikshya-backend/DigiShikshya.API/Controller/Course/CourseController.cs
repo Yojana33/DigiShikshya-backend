@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Mvc;
 [Route("api/v1/course")]
 public class CourseController(IMediator _mediator) : ControllerBase
 {
-    [Authorize(Policy = "AdminPolicy")]
     [HttpPost("add")]
     public async Task<IActionResult> AddCourse([FromBody] AddNewCourse request)
     {
@@ -23,9 +22,7 @@ public class CourseController(IMediator _mediator) : ControllerBase
     }
 
     [HttpGet("all")]
-    [Authorize(Policy = "StudentPolicy")]
-    [Authorize(Policy = "AdminPolicy")]
-
+  
     public async Task<IActionResult> GetAllCourses([FromQuery] CourseListQuery request)
     {
         try
@@ -41,7 +38,6 @@ public class CourseController(IMediator _mediator) : ControllerBase
 
 
     [HttpPatch("update")]
-    [Authorize(Policy = "AdminPolicy")]
 
     public async Task<IActionResult> UpdateCourse([FromBody] UpdateCourse request)
     {
@@ -57,7 +53,7 @@ public class CourseController(IMediator _mediator) : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Policy = "AdminPolicy")]
+
     public async Task<IActionResult> DeleteCourse(Guid id)
     {
         var request = new DeleteCourse { Id = id };

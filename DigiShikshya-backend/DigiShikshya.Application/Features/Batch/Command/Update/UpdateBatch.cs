@@ -6,5 +6,5 @@ public class UpdateBatch : IRequest<UpdateBatchResponse>
 
     public DateTime NewStartDate { get; set; }
     public DateTime NewEndDate { get; set; }
-    public StatusEnum NewStatus { get; set; }
+    public int NewStatus { get; set; }
 }

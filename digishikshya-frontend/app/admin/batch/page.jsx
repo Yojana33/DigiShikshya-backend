@@ -9,56 +9,119 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Edit, Trash } from 'lucide-react'
-import { fetchBatches, addBatch, updateBatch, deleteBatch } from '@/lib/api'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import axiosInstance from '@/config/axiosconfig'
+import { useToast } from '@/hooks/use-toast'
+import { Toast } from '@radix-ui/react-toast'
+import { Toaster } from '@/components/ui/toaster'
+
+ const fetchBatches = async () => {
+  const response = await axiosInstance.get('/api/v1/batch/all'); // Adjust the endpoint
+  return response.data.items;
+};
+
+ const addBatch = async (batch) => {
+  const response = await axiosInstance.post('/api/v1/batch/add', batch);
+  return response.data;
+};
+
+ const updateBatch = async (batch) => {
+  const response = await axiosInstance.patch(`/api/v1/batch/update`, batch);
+  return response.data;
+};
+
+ const deleteBatch = async (batchId) => {
+  const response = await axiosInstance.delete(`/api/v1/batch/${batchId}`);
+  return response.data;
+};
 
 export default function BatchPage() {
-  const queryClient = useQueryClient();
 
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
   // Fetch batches data from API
-  const { data: batches, error, isLoading } = useQuery(['batches'], async () => {
-    const response = await axiosInstance.get(fetchBatches);
-    return response.data.items;  // Correcting the API response to return items directly
-  });
+  const { data: batches, error, isLoading } = useQuery(
+    ['batches'],
+    
+     fetchBatches,
+    
+    {
+      onSuccess: (data) => {
+        console.log('Successfully fetched batches:', data);
+      },
+      onError: (error) => {
+        console.error('Error fetching batches:', error);
+      }
+    }
+  );
+
+ 
+
+  
 
   // Add, update, delete mutations for batches
   const addMutation = useMutation(addBatch, {
-    onSuccess: () => queryClient.invalidateQueries(['batches']),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['batches']);
+      toast({ title: 'Batch Created', description: 'The batch was successfully created.' });
+    },
+    onError: () => {
+      toast({ title: 'Error', description: 'Failed to create the batch.', variant: 'destructive' });
+    }
   });
+
   const updateMutation = useMutation(updateBatch, {
-    onSuccess: () => queryClient.invalidateQueries(['batches']),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['batches']);
+      toast({ title: 'Batch Updated', description: 'The batch was successfully updated.' });
+    },
+    onError: () => {
+      toast({ title: 'Error', description: 'Failed to update the batch.', variant: 'destructive' });
+    }
   });
+
   const deleteMutation = useMutation(deleteBatch, {
-    onSuccess: () => queryClient.invalidateQueries(['batches']),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['batches']);
+      toast({ title: 'Batch Deleted', description: 'The batch was successfully deleted.' });
+    },
+    onError: () => {
+      toast({ title: 'Error', description: 'Failed to delete the batch.', variant: 'destructive' });
+    }
   });
 
   const [editingBatch, setEditingBatch] = useState(null);
 
   const handleCreateBatch = (newBatch) => {
+
     addMutation.mutate(newBatch);
-  };
+  
+    };
 
   const handleEditBatch = (editedBatch) => {
     updateMutation.mutate(editedBatch);
+    
+  
     setEditingBatch(null);
   };
 
   const handleDeleteBatch = (batchId) => {
+    console.log('Deleting batch with ID:', batchId);
+  
     deleteMutation.mutate(batchId);
   };
-
   // Handling loading and error states
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <div>Loading batches...</div>; // Spinner could be added here
   }
 
   if (error) {
-    return <div>Error: {error.message}</div>;
+    return <div>Error loading batches: {error.message}</div>; // Error handling improved
   }
 
   return (
     <div className="container mx-auto py-10">
+              <Toaster />
       <Tabs defaultValue="create" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="create">Create Batch</TabsTrigger>
@@ -69,7 +132,7 @@ export default function BatchPage() {
         </TabsContent>
         <TabsContent value="view">
           <BatchList 
-            batches={batches} // Correct batches passed directly from useQuery result
+            batches={batches} 
             onEdit={setEditingBatch} 
             onDelete={handleDeleteBatch} 
           />
@@ -180,13 +243,17 @@ function BatchList({ batches, onEdit, onDelete }) {
         <Card key={batch.id}>
           <CardHeader>
             <div className="flex justify-between items-center">
-              <CardTitle> Batch{batch.batchName}</CardTitle>
+              <CardTitle>Batch: {batch.batchName}</CardTitle>
               <div className="space-x-2">
                 <Button variant="outline" size="icon" onClick={() => onEdit(batch)}>
                   <Edit className="h-4 w-4" />
                   <span className="sr-only">Edit</span>
                 </Button>
-                <Button variant="outline" size="icon" onClick={() => onDelete(batch.id)}>
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  onClick={() => onDelete(batch.id)} // Pass correct batch ID to onDelete
+                >
                   <Trash className="h-4 w-4" />
                   <span className="sr-only">Delete</span>
                 </Button>
@@ -215,20 +282,24 @@ function BatchList({ batches, onEdit, onDelete }) {
   );
 }
 
+
+
 function EditBatchForm({ batch, onSave }) {
+  console.log('Editing batch:', batch);
+
   const [name, setName] = useState(batch.batchName);
-  const [startDate, setStartDate] = useState(batch.startDate);
-  const [endDate, setEndDate] = useState(batch.endDate);
-  const [status, setStatus] = useState(batch.status.toString());  // Convert to string for Select component
+  const [startDate, setStartDate] = useState(new Date(batch.startDate).toISOString().split('T')[0]);
+  const [endDate, setEndDate] = useState(new Date(batch.endDate).toISOString().split('T')[0]);
+  const [status, setStatus] = useState(batch.status.toString());
 
   const handleSubmit = (e) => {
     e.preventDefault();
     onSave({ 
       ...batch, 
-      batchName: name, 
-      startDate, 
-      endDate, 
-      status: parseInt(status)  // Convert back to integer
+      id : batch.id,
+      startDate: new Date(startDate).toISOString(), 
+      endDate: new Date(endDate).toISOString(), 
+      status: parseInt(status) 
     });
   };
 
@@ -281,3 +352,4 @@ function EditBatchForm({ batch, onSave }) {
     </form>
   );
 }
+

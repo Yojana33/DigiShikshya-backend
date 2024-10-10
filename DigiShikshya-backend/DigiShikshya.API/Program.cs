@@ -21,6 +21,10 @@ if (string.IsNullOrEmpty(connectionString))
 
 // Service Registration
 builder.Services.AddControllers();
+builder.Services.AddInfrastructureServices(configuration);
+builder.Services.AddPersistenceServices(connectionString);
+builder.Services.AddApplicationServices();
+
 
 // Authentication Configuration (Keycloak)
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -36,7 +40,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidIssuer = "http://keycloak:8080/realms/digishikshya",
             ValidateAudience = true,
             ValidAudience = "account",
-            ValidateLifetime = true,
+            // ValidateLifetime = true,  // uncomment when ready to check token expiration
             RoleClaimType = ClaimTypes.Role
         };
 
@@ -83,13 +87,14 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-// Authorization Configuration
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("AdminPolicy", policy => policy.RequireRole("Admin"));
-    options.AddPolicy("TeacherPolicy", policy => policy.RequireRole("Teacher"));
-    options.AddPolicy("StudentPolicy", policy => policy.RequireRole("Student"));
-});
+  // Uncomment when ready to add authorization policies
+
+// builder.Services.AddAuthorization(options =>
+// {
+//     options.AddPolicy("AdminPolicy", policy => policy.RequireRole("Admin"));
+//     options.AddPolicy("TeacherPolicy", policy => policy.RequireRole("Teacher"));
+//     options.AddPolicy("StudentPolicy", policy => policy.RequireRole("Student"));
+// });
 
 // CORS Configuration
 builder.Services.AddCors(options =>
