@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -32,7 +33,7 @@ public class AuthController : ControllerBase
             // Set the tokens as HttpOnly cookies
             SetTokenCookies(token.Item1, token.Item2);
 
-            return Ok(new { Info = userData }); // Return user info without tokens if using cookies
+            return Ok(new { Info = userData, AccessToken = token.Item1,RefreshToken= token.Item2 }); // Return user info without tokens if using cookies
         }
         catch (Exception ex)
         {
