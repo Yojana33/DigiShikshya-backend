@@ -28,7 +28,7 @@ public class AuthController : ControllerBase
             }
 
             var userData = JwtTokenHelper.GetTokenInfo(token.Item1);
-            await _authService.RegisterAsync(userData.Id!);
+            // await _authService.RegisterAsync(userData.Id!);
 
             // Set the tokens as HttpOnly cookies
             SetTokenCookies(token.Item1, token.Item2);
@@ -84,7 +84,7 @@ public class AuthController : ControllerBase
             }
 
             var userData = JwtTokenHelper.GetTokenInfo(token.Item1);
-            await _authService.RegisterAsync(userData.Id!);
+            // await _authService.RegisterAsync(userData.Id!);
 
             // Set the new tokens as HttpOnly cookies
             SetTokenCookies(token.Item1, token.Item2);

@@ -19,7 +19,7 @@ using DigiShikshya.Infrastructure.Services;
         }
         ahoCorasick.Build();
 
-        List<Tuple<Guid, Guid>> similarSubmissions = [];
+        List<Tuple<Guid, Guid>> similarSubmissions = new List<Tuple<Guid, Guid>>(); // Fixed initialization
         // Compare each submission against all others
         foreach (var submission in submissions)
         {
@@ -30,11 +30,13 @@ using DigiShikshya.Infrastructure.Services;
                 {
                     var matches =  ahoCorasick.Search(otherSubmission.SubmittedFile!.ToString()!);
                     totalMatches += matches.Count;
+
+                    // Moved this line inside the inner loop
+                    similarSubmissions.Add(new Tuple<Guid, Guid>(submission.StudentId, otherSubmission.Id));
                 }
             }
-            similarSubmissions.Add(new Tuple<Guid, Guid>(submission.StudentId, otherSubmission.Id));
         }
 
-        return similarSubmissions;
+        return Task.FromResult(similarSubmissions); // Wrap the list in a Task
     }
 }

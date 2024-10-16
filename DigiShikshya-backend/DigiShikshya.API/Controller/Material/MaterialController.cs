@@ -89,22 +89,22 @@ public class MaterialController : ControllerBase
         };
     }
 
-    [HttpGet("streamVideo/{id}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> StreamVideo(Guid id)
-    {
-        // Use the VideoService to get the video stream
-        var videoStream = await _videoService.GetVideoStream(id);
+    // [HttpGet("streamVideo/{id}")]
+    // [ProducesResponseType(StatusCodes.Status200OK)]
+    // [ProducesResponseType(StatusCodes.Status404NotFound)]
+    // [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    // public async Task<IActionResult> StreamVideo(Guid id)
+    // {
+    //     // Use the VideoService to get the video stream
+    //     var videoStream = await _videoService.GetVideoStream(id);
 
-        if (videoStream == null)
-        {
-            return NotFound(new { message = "Video not found." });
-        }
+    //     if (videoStream == null)
+    //     {
+    //         return NotFound(new { message = "Video not found." });
+    //     }
 
-        return File(videoStream, "video/mp4"); // Assuming MP4, adjust MIME type if different
-    }
+    //     return File(videoStream, "video/mp4"); // Assuming MP4, adjust MIME type if different
+    // }
 
 
 }

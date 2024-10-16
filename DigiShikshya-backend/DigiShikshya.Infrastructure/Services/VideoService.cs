@@ -6,17 +6,14 @@ namespace DigiShikshya.Infrastructure.Services
     public class VideoService
     {
         private readonly IHubContext<VideoHub> _hubContext;
-        private readonly IMaterialRepository _materialRepository;
 
-        public VideoService(IHubContext<VideoHub> hubContext, IMaterialRepository materialRepository)
+        public VideoService(IHubContext<VideoHub> hubContext)
         {
             _hubContext = hubContext;
-            _materialRepository = materialRepository;
         }
 
-        public   async Task<Stream> GetVideoStream(Guid videoId)
+        public   async Task<Stream> GetVideoStream(byte[] videoData)
         {
-            var videoData = await _materialRepository.GetVideoContentById(videoId);
 
             if (videoData != null && videoData.Length > 0)
             {
