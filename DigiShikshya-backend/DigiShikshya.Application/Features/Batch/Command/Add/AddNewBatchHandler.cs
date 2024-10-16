@@ -4,8 +4,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 
-public class AddNewBatchHandler(IBatchRepository batchRepository) : IRequestHandler<AddNewBatch, AddNewBatchResponse>
+public class AddNewBatchHandler(IBatchRepository batchRepository, IHttpContextAccessor httpContextAccessor) : IRequestHandler<AddNewBatch, AddNewBatchResponse>
 {
     public async Task<AddNewBatchResponse> Handle(AddNewBatch request, CancellationToken cancellationToken)
     {
@@ -29,8 +30,9 @@ public class AddNewBatchHandler(IBatchRepository batchRepository) : IRequestHand
             BatchId = Guid.NewGuid(),  // Generate a new BatchId
             StartDate = request.StartDate,
             EndDate = request.EndDate,
-            Status = (StatusEnum)request.Status,  // Assuming Status is an enum
-            CreatedAt = DateTime.Now,
+            Status = (StatusEnum)request.Status, 
+            CreatedBy= httpContextAccessor.HttpContext?.Items["Name"]?.ToString() ?? "Unknown User",
+            
             UpdatedAt = DateTime.Now,
             IsActive = true
         };

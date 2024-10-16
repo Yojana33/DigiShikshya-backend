@@ -5,18 +5,10 @@ using System.Threading.Tasks;
 
     public class EmailService
     {
-        private readonly string _smtpServer;
-        private readonly int _smtpPort;
-        private readonly string _smtpUser;
-        private readonly string _smtpPass;
-
-        public EmailService(string smtpServer, int smtpPort, string smtpUser, string smtpPass)
-        {
-            _smtpServer = smtpServer;
-            _smtpPort = smtpPort;
-            _smtpUser = smtpUser;
-            _smtpPass = smtpPass;
-        }
+        private readonly string _smtpServer = "smtp.gmail.com";
+        private readonly int _smtpPort = 587;
+        private readonly string _smtpUser = "your-email@gmail.com";
+        private readonly string _smtpPass = "your-password";
 
         public async Task SendEmailAsync(string to, string subject, string body)
         {

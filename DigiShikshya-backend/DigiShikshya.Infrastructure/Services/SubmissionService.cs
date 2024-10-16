@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+    using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using DigiShikshya.Infrastructure.Algorithms;
@@ -8,7 +8,7 @@ using DigiShikshya.Infrastructure.Services;
     public class SubmissionService
     {
 
-    public static Task<List<object>> CheckForSimilaritiesAsync(List<Submission> submissions)
+    public static Task<List<Tuple<Guid, Guid>>> CheckForSimilaritiesAsync(List<Submission> submissions)
     {
         var ahoCorasick = new AhoCorasick();
 
@@ -19,7 +19,7 @@ using DigiShikshya.Infrastructure.Services;
         }
         ahoCorasick.Build();
 
-        List<object> similarSubmissions = [];
+        List<Tuple<Guid, Guid>> similarSubmissions = [];
         // Compare each submission against all others
         foreach (var submission in submissions)
         {
@@ -32,15 +32,9 @@ using DigiShikshya.Infrastructure.Services;
                     totalMatches += matches.Count;
                 }
             }
-
-            // Calculate similarity percentage
-            double similarityPercentage = (double)totalMatches / (submissions.Count - 1);
-            if (similarityPercentage > 0.6)
-            {
-                similarSubmissions.Add(submission.StudentId);
-            }
+            similarSubmissions.Add(new Tuple<Guid, Guid>(submission.StudentId, otherSubmission.Id));
         }
 
-        return Task.FromResult(similarSubmissions);
+        return similarSubmissions;
     }
 }
