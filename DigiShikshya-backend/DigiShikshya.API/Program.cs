@@ -81,6 +81,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 // Optional: Add user-specific data to HttpContext
                 var userId = context.Principal!.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 context.HttpContext.Items["UserId"] = userId;
+                context.HttpContext.Items["Name"] = context.Principal!.FindFirst(ClaimTypes.Name)?.Value;
 
                 return Task.CompletedTask;
             }

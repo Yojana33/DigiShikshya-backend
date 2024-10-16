@@ -2,8 +2,7 @@ using System.Net;
 using System.Net.Mail;
 using System.Threading.Tasks;
 
-namespace DigiShikshya.Infrastructure.Services
-{
+
     public class EmailService
     {
         private readonly string _smtpServer;
@@ -40,4 +39,3 @@ namespace DigiShikshya.Infrastructure.Services
             await smtpClient.SendMailAsync(mailMessage);
         }
     }
-}

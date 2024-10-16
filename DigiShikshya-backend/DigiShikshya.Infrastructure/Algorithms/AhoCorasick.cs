@@ -61,7 +61,7 @@ namespace DigiShikshya.Infrastructure.Algorithms
             }
         }
 
-        public List<string> Search(string text)
+        public  List<string> Search(string text)
         {
             var node = _root;
             var results = new List<string>();

@@ -10,6 +10,9 @@ public static class InfrastructureServiceRegistration
     {
         //Register database connection
         services.AddScoped<VideoService>();
+        services.AddScoped<EmailService>();
+        services.AddScoped<SubmissionService>();
+        services.AddScoped<KeycloakService>();
         services.AddSignalR();
         services.AddHttpClient<KeycloakService>(client =>
         {

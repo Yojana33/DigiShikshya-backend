@@ -4,54 +4,43 @@ using System.Threading.Tasks;
 using DigiShikshya.Infrastructure.Algorithms;
 using DigiShikshya.Infrastructure.Services;
 
-namespace DigiShikshya.Application.Services.Submission
-{
+
     public class SubmissionService
     {
-        private readonly ISubmissionRepository _submissionRepository;
-        private readonly EmailService _emailService;
 
-        public SubmissionService(ISubmissionRepository submissionRepository, EmailService emailService)
-        {
-            _submissionRepository = submissionRepository;
-            _emailService = emailService;
-        }
-
-        public async Task<List<object>> CheckForSimilaritiesAsync(Guid id)
+    public static Task<List<object>> CheckForSimilaritiesAsync(List<Submission> submissions)
     {
-        var submissions = await _submissionRepository.GetAllSubmissions(new SubmissionListQuery { AssignmentId = id });
         var ahoCorasick = new AhoCorasick();
 
         // Build the Aho-Corasick trie with all submissions
-        foreach (var submission in submissions.Items!)
+        foreach (var submission in submissions)
         {
-            ahoCorasick.AddPattern(submission.SubmittedFile!);
+            ahoCorasick.AddPattern(submission.SubmittedFile!.ToString()!);
         }
         ahoCorasick.Build();
 
         List<object> similarSubmissions = [];
         // Compare each submission against all others
-        foreach (var submission in submissions.Items)
+        foreach (var submission in submissions)
         {
             int totalMatches = 0;
-            foreach (var otherSubmission in submissions.Items)
+            foreach (var otherSubmission in submissions)
             {
                 if (submission.Id != otherSubmission.Id)
                 {
-                    var matches = ahoCorasick.Search(otherSubmission.SubmittedFile!);
+                    var matches =  ahoCorasick.Search(otherSubmission.SubmittedFile!.ToString()!);
                     totalMatches += matches.Count;
                 }
             }
 
             // Calculate similarity percentage
-            double similarityPercentage = (double)totalMatches / (submissions.TotalCount - 1);
+            double similarityPercentage = (double)totalMatches / (submissions.Count - 1);
             if (similarityPercentage > 0.6)
             {
                 similarSubmissions.Add(submission.StudentId);
             }
         }
 
-        return similarSubmissions;
-    }
+        return Task.FromResult(similarSubmissions);
     }
 }

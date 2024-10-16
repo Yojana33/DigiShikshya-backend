@@ -45,7 +45,7 @@ public class UpdateBatchHandler(IBatchRepository _batchRepository) : IRequestHan
             Id = request.Id,
             StartDate = request.NewStartDate,
             EndDate = request.NewEndDate,
-            Status = request.NewStatus,
+            Status = (StatusEnum)request.NewStatus,
            
         };
 

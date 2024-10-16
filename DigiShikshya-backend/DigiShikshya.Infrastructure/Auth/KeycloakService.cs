@@ -5,19 +5,17 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
-public class KeycloakService : IKeyClaokService
+public class KeycloakService
 {
     private readonly HttpClient _httpClient;
     private readonly IConfiguration _configuration;
-    private readonly IUserRepository _userRepository;
     private readonly ILogger<KeycloakService> _logger;
     private readonly KeycloakSettings _keycloakSettings;
 
-    public KeycloakService(HttpClient httpClient, IConfiguration configuration, IUserRepository userRepository, ILogger<KeycloakService> logger)
+    public KeycloakService(HttpClient httpClient, IConfiguration configuration, ILogger<KeycloakService> logger)
     {
         _httpClient = httpClient;
         _configuration = configuration;
-        _userRepository = userRepository;
         _logger = logger;
 
         // Load keycloak settings only once to improve performance
@@ -107,18 +105,18 @@ public class KeycloakService : IKeyClaokService
     }
 
     // Register the user in the system by adding them to the user repository
-    public async Task<bool> RegisterAsync(string id)
-    {
-        try
-        {
-            return await _userRepository.AddUserWhenLoggedIn(id);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to register user {UserId}", id);
-            return false;
-        }
-    }
+    // public async Task<bool> RegisterAsync(string id)
+    // {
+    //     try
+    //     {
+    //         return await _userRepository.AddUserWhenLoggedIn(id);
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         _logger.LogError(ex, "Failed to register user {UserId}", id);
+    //         return false;
+    //     }
+    // }
 }
 
 // Keycloak settings class to encapsulate configuration
