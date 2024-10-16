@@ -32,7 +32,7 @@ export default function AdminLayout({ children }) {
        <Menu className="h-5 w-5" />
        </div>
       </Button>
-      <QueryClientProvider client={queryClient}>
+      <QueryClientProvider client={queryClient} >
 
       <main className="flex-1 p-4">
         <div className="space-y-4">

@@ -1,57 +1,63 @@
 'use client';
 
-import { useState } from 'react'
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Edit, Trash } from 'lucide-react'
-import { fetchCourses, addCourse, updateCourse, deleteCourse } from '@/lib/api';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import axiosInstance from '@/config/axiosconfig'
-
+import { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Edit, Trash } from 'lucide-react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import axiosInstance from '@/config/axiosconfig';
+import { useToast } from '@/hooks/use-toast';
 
 export default function CoursePage() {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const [editingCourse, setEditingCourse] = useState(null);
 
-  // Fetch batches data from API
-  const { data: courses, error, isLoading } = useQuery(['courses'], async () => {
-    const response = await axiosInstance.get(fetchCourses);
-    return response.data.items;  // Correcting the API response to return items directly
+  const { data: courses, error, refetch,isLoading } = useQuery(['courses'], async () => {
+    const response = await axiosInstance.get('/api/v1/course/all');
+    return response.data.items;
   });
 
-  const addCourseMutation = useMutation(addCourse, {
-    onSuccess: () => {
-      queryClient.invalidateQueries(['courses']);
-    },
-  });
-
-  const updateCourseMutation = useMutation(updateCourse, {
-    onSuccess: () => {
-      queryClient.invalidateQueries(['courses']);
-    },
-  });
-
-  const deleteCourseMutation = useMutation(deleteCourse, {
-    onSuccess: () => {
-      queryClient.invalidateQueries(['courses']);
-    },
-  });
-
-  const handleCreateCourse = (newCourse) => {
-    addCourseMutation.mutate(newCourse);
+  const mutationHandler = (mutationFn, successMessage, errorMessage) => {
+    return useMutation(mutationFn, {
+      onSuccess: () => {
+        queryClient.invalidateQueries(['courses']);
+        toast({ title: successMessage, description: `The course was successfully ${successMessage.toLowerCase()}.` });
+        refetch();
+      },
+      onError: () => {
+        toast({ title: 'Error', description: `Failed to ${errorMessage.toLowerCase()} the course.`, variant: 'destructive' });
+      }
+    });
   };
 
-  const handleEditCourse = (editedCourse) => {
-    updateCourseMutation.mutate(editedCourse);
+  const addCourseMutation = mutationHandler(
+    (course) => axiosInstance.post('/api/v1/course/add', course),
+    'Course Created', 'create'
+  );
+
+  const updateCourseMutation = mutationHandler(
+    (course) => axiosInstance.patch(`/api/v1/course/update`, course),
+    'Course Updated', 'update'
+  );
+
+  const deleteCourseMutation = mutationHandler(
+    (id) => axiosInstance.delete(`/api/v1/course/${id}`),
+    'Course Deleted', 'delete'
+  );
+
+  const handleCreateOrUpdateCourse = (course) => {
+    if (course.id) {
+      updateCourseMutation.mutate(course);
+    } else {
+      addCourseMutation.mutate(course);
+    }
     setEditingCourse(null);
-  };
-
-  const handleDeleteCourse = (courseId) => {
-    deleteCourseMutation.mutate(courseId);
   };
 
   if (isLoading) {
@@ -61,7 +67,7 @@ export default function CoursePage() {
   if (error) {
     return <div>Error: {error.message}</div>;
   }
-  
+
   return (
     <div className="container mx-auto py-10">
       <Tabs defaultValue="create" className="w-full">
@@ -70,18 +76,18 @@ export default function CoursePage() {
           <TabsTrigger value="view">View Courses</TabsTrigger>
         </TabsList>
         <TabsContent value="create">
-          <CreateCourseForm onCreateCourse={handleCreateCourse} />
+          <CreateOrEditCourseForm onSave={handleCreateOrUpdateCourse} />
         </TabsContent>
         <TabsContent value="view">
           <CourseList 
             courses={courses} 
             onEdit={setEditingCourse} 
-            onDelete={handleDeleteCourse} 
+            onDelete={(id) => deleteCourseMutation.mutate(id)} 
           />
         </TabsContent>
       </Tabs>
 
-      <Dialog open={editingCourse !== null} onOpenChange={() => setEditingCourse(null)}>
+      <Dialog open={!!editingCourse} onOpenChange={() => setEditingCourse(null)}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Edit Course</DialogTitle>
@@ -90,30 +96,28 @@ export default function CoursePage() {
             </DialogDescription>
           </DialogHeader>
           {editingCourse && (
-            <EditCourseForm course={editingCourse} onSave={handleEditCourse} />
+            <CreateOrEditCourseForm course={editingCourse} onSave={handleCreateOrUpdateCourse} />
           )}
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }
 
-function CreateCourseForm({ onCreateCourse }) {
-  const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
+function CreateOrEditCourseForm({ course = { name: '', description: '' }, onSave }) {
+  const [newName, setNewName] = useState(course.name);
+  const [newDescription, setNewDescription] = useState(course.description);
 
   const handleSubmit = (e) => {
-    e.preventDefault()
-    onCreateCourse({ name, description })
-    setName('')
-    setDescription('')
-  }
+    e.preventDefault();
+    onSave({ ...course, newName: newName, newDescription: newDescription });
+  };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Create New Course</CardTitle>
-        <CardDescription>Enter the details for a new course</CardDescription>
+        <CardTitle>{course.id ? 'Edit Course' : 'Create New Course'}</CardTitle>
+        <CardDescription>{course.id ? 'Modify the course details' : 'Enter the details for a new course'}</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -121,8 +125,8 @@ function CreateCourseForm({ onCreateCourse }) {
             <Label htmlFor="name">Course Name</Label>
             <Input 
               id="name" 
-              value={name} 
-              onChange={(e) => setName(e.target.value)} 
+              value={newName} 
+              onChange={(e) => setNewName(e.target.value)} 
               required 
             />
           </div>
@@ -130,16 +134,16 @@ function CreateCourseForm({ onCreateCourse }) {
             <Label htmlFor="description">Course Description</Label>
             <Textarea 
               id="description" 
-              value={description} 
-              onChange={(e) => setDescription(e.target.value)} 
+              value={newDescription} 
+              onChange={(e) => setNewDescription(e.target.value)} 
               required 
             />
           </div>
-          <Button type="submit" className="w-full">Create Course</Button>
+          <Button type="submit" className="w-full">{course.id ? 'Save Changes' : 'Create Course'}</Button>
         </form>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 function CourseList({ courses, onEdit, onDelete }) {
@@ -153,11 +157,9 @@ function CourseList({ courses, onEdit, onDelete }) {
               <div className="space-x-2">
                 <Button variant="outline" size="icon" onClick={() => onEdit(course)}>
                   <Edit className="h-4 w-4" />
-                  <span className="sr-only">Edit</span>
                 </Button>
                 <Button variant="outline" size="icon" onClick={() => onDelete(course.id)}>
                   <Trash className="h-4 w-4" />
-                  <span className="sr-only">Delete</span>
                 </Button>
               </div>
             </div>
@@ -168,41 +170,5 @@ function CourseList({ courses, onEdit, onDelete }) {
         </Card>
       ))}
     </div>
-  )
-}
-
-function EditCourseForm({ course, onSave }) {
-  const [name, setName] = useState(course.name)
-  const [description, setDescription] = useState(course.description)
-
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    onSave({ ...course, name, description })
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="edit-name">Course Name</Label>
-        <Input 
-          id="edit-name" 
-          value={name} 
-          onChange={(e) => setName(e.target.value)} 
-          required 
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="edit-description">Course Description</Label>
-        <Textarea 
-          id="edit-description" 
-          value={description} 
-          onChange={(e) => setDescription(e.target.value)} 
-          required 
-        />
-      </div>
-      <DialogFooter>
-        <Button type="submit">Save changes</Button>
-      </DialogFooter>
-    </form>
-  )
+  );
 }

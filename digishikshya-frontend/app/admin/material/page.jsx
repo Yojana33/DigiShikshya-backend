@@ -9,10 +9,54 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Bell, Search, Eye, FileText, Video, Image as ImageIcon } from 'lucide-react'
 import { fetchMaterials, addMaterial, updateMaterial, deleteMaterial } from '@/lib/api';
+import { useQueryClient } from '@tanstack/react-query'
 
 export default function ViewMaterialsPage() {
+
+  const getAllMaterials = async () => {
+    await axiosInstance.get('/api/materials')
+  }
+
+  const addMaterial = async (material) => {
+    await axiosInstance.post('/api/materials', material)
+  }
+
+  const updateMaterial = async (material) => {
+    await axiosInstance.put(`/api/materials/${material.id}`, material)
+  }
+
+  const deleteMaterial = async (id) => {
+    await axiosInstance.delete(`/api/materials/${id}`)
+  }
+
+  const { mutate: addMaterialMutation } = useMutation({
+    mutationFn: addMaterial,
+    onSuccess: () => {
+      toast.success('Material added successfully');
+      queryClient.invalidateQueries(['materials']);
+    },
+    onError: () => {
+      toast.error('Failed to add material');
+    }
+  });
+
+  const handleAddMaterial = (material) => {
+    addMaterialMutation(material);
+  }
+
+  const handleUpdateMaterial = (material) => {
+    updateMaterialMutation(material);
+  }
+
+  const handleDeleteMaterial = (id) => {
+    deleteMaterialMutation(id);
+  }
+
+  
+
+  const { data: materials, error, isLoading } = useQuery(['materials'], getAllMaterials);
+
   const queryClient = useQueryClient();
-  const { data: materials, error, isLoading } = useQuery(['materials'], fetchMaterials);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMaterial, setSelectedMaterial] = useState(null);
 
@@ -74,6 +118,7 @@ export default function ViewMaterialsPage() {
   }
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
+      <Toaster />
       <header className="bg-white shadow-sm z-10 p-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-900">View Materials</h1>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
@@ -19,13 +19,25 @@ import {
   Menu
 } from 'lucide-react'
 
+const sidebarLinks = [
+  { href: '/admin/dashboard', label: 'Dashboard', icon: <LayoutDashboard className="h-5 w-5 mr-3" /> },
+  { href: '/admin/batch', label: 'Batch', icon: <Users className="h-5 w-5 mr-3" /> },
+  { href: '/admin/course', label: 'Course', icon: <BookCopy className="h-5 w-5 mr-3" /> },
+  { href: '/admin/semester', label: 'Semester', icon: <Calendar className="h-5 w-5 mr-3" /> },
+  { href: '/admin/subjects', label: 'Subjects', icon: <BookOpen className="h-5 w-5 mr-3" /> },
+  { href: '/admin/teacher', label: 'Teacher', icon: <GraduationCap className="h-5 w-5 mr-3" /> },
+  { href: '/admin/student', label: 'Student', icon: <UserSquare2 className="h-5 w-5 mr-3" /> },
+  { href: '/admin/settings', label: 'Settings', icon: <Settings className="h-5 w-5 mr-3" /> },
+]
+
 export default function AdminSidebar({ currentPath, onLinkClick }) {
   const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
+    // Add error handling if needed
     router.push('/')
-  }
+  }, [router])
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full bg-gray-100">
@@ -35,38 +47,17 @@ export default function AdminSidebar({ currentPath, onLinkClick }) {
       </div>
       <ScrollArea className="flex-grow">
         <nav className="space-y-2 px-4">
-          <Link href="/admin/dashboard" className={`flex items-center p-2 rounded-lg ${currentPath === '/admin/dashboard' ? 'bg-gray-200 text-gray-900' : 'text-gray-700 hover:bg-gray-200'}`} onClick={() => { onLinkClick(); setIsOpen(false); }}>
-            <LayoutDashboard className="h-5 w-5 mr-3" />
-            Dashboard
-          </Link>
-          <Link href="/admin/batch" className={`flex items-center p-2 rounded-lg ${currentPath === '/admin/batch' ? 'bg-gray-200 text-gray-900' : 'text-gray-700 hover:bg-gray-200'}`} onClick={() => { onLinkClick(); setIsOpen(false); }}>
-            <Users className="h-5 w-5 mr-3" />
-            Batch
-          </Link>
-          <Link href="/admin/course" className={`flex items-center p-2 rounded-lg ${currentPath === '/admin/course' ? 'bg-gray-200 text-gray-900' : 'text-gray-700 hover:bg-gray-200'}`} onClick={() => { onLinkClick(); setIsOpen(false); }}>
-            <BookCopy className="h-5 w-5 mr-3" />
-            Course
-          </Link>
-          <Link href="/admin/semester" className={`flex items-center p-2 rounded-lg ${currentPath === '/admin/semester' ? 'bg-gray-200 text-gray-900' : 'text-gray-700 hover:bg-gray-200'}`} onClick={() => { onLinkClick(); setIsOpen(false); }}>
-            <Calendar className="h-5 w-5 mr-3" />
-            Semester
-          </Link>
-          <Link href="/admin/subjects" className={`flex items-center p-2 rounded-lg ${currentPath === '/admin/subjects' ? 'bg-gray-200 text-gray-900' : 'text-gray-700 hover:bg-gray-200'}`} onClick={() => { onLinkClick(); setIsOpen(false); }}>
-            <BookOpen className="h-5 w-5 mr-3" />
-            Subjects
-          </Link>
-          <Link href="/admin/teacher" className={`flex items-center p-2 rounded-lg ${currentPath === '/admin/teacher' ? 'bg-gray-200 text-gray-900' : 'text-gray-700 hover:bg-gray-200'}`} onClick={() => { onLinkClick(); setIsOpen(false); }}>
-            <GraduationCap className="h-5 w-5 mr-3" />
-            Teacher
-          </Link>
-          <Link href="/admin/student" className={`flex items-center p-2 rounded-lg ${currentPath === '/admin/student' ? 'bg-gray-200 text-gray-900' : 'text-gray-700 hover:bg-gray-200'}`} onClick={() => { onLinkClick(); setIsOpen(false); }}>
-            <UserSquare2 className="h-5 w-5 mr-3" />
-            Student
-          </Link>
-          <Link href="/admin/settings" className={`flex items-center p-2 rounded-lg ${currentPath === '/admin/settings' ? 'bg-gray-200 text-gray-900' : 'text-gray-700 hover:bg-gray-200'}`} onClick={() => { onLinkClick(); setIsOpen(false); }}>
-            <Settings className="h-5 w-5 mr-3" />
-            Settings
-          </Link>
+          {sidebarLinks.map(({ href, label, icon }) => (
+            <Link
+              key={href}
+              href={href}
+              className={`flex items-center p-2 rounded-lg ${currentPath === href ? 'bg-gray-200 text-gray-900' : 'text-gray-700 hover:bg-gray-200'}`}
+              onClick={() => { onLinkClick(); setIsOpen(false); }}
+            >
+              {icon}
+              {label}
+            </Link>
+          ))}
         </nav>
       </ScrollArea>
       <Button
