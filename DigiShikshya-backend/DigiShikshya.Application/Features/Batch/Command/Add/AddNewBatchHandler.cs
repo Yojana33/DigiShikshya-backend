@@ -29,8 +29,9 @@ public class AddNewBatchHandler(IBatchRepository batchRepository) : IRequestHand
             BatchId = Guid.NewGuid(),  // Generate a new BatchId
             StartDate = request.StartDate,
             EndDate = request.EndDate,
-            Status = (StatusEnum)request.Status,  // Assuming Status is an enum
-            CreatedAt = DateTime.Now,
+            Status = (StatusEnum)request.Status,
+            CreatedBy = httpContextAccessor.HttpContext?.Items["Name"]?.ToString() ?? "Unknown User",
+
             UpdatedAt = DateTime.Now,
             IsActive = true
         };
