@@ -2,7 +2,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DigiShikshya.Domain\DigiShikshya.Domain.csproj" />
-    <ProjectReference Include="..\DigiShikshya.Infrastructure\DigiShikshya.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

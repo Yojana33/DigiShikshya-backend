@@ -30,9 +30,9 @@ public class AddNewBatchHandler(IBatchRepository batchRepository, IHttpContextAc
             BatchId = Guid.NewGuid(),  // Generate a new BatchId
             StartDate = request.StartDate,
             EndDate = request.EndDate,
-            Status = (StatusEnum)request.Status, 
-            CreatedBy= httpContextAccessor.HttpContext?.Items["Name"]?.ToString() ?? "Unknown User",
-            
+            Status = (StatusEnum)request.Status,
+            CreatedBy = httpContextAccessor.HttpContext?.Items["Name"]?.ToString() ?? "Unknown User",
+
             UpdatedAt = DateTime.Now,
             IsActive = true
         };
