@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using System.Net.Http.Json;
 
 public class KeycloakService
 {
@@ -117,6 +118,33 @@ public class KeycloakService
     //         return false;
     //     }
     // }
+
+    public async Task<User> Get(Guid id)
+    {
+        var requestBody = new StringContent(
+            $"client_id={_keycloakSettings.ClientId}&client_secret={_keycloakSettings.ClientSecret}&grant_type=client_credentials",
+            Encoding.UTF8,
+            "application/x-www-form-urlencoded");
+
+        var response = await _httpClient.GetAsync($"/realms/{_keycloakSettings.Realm}/users/{id}");
+
+        if(response.IsSuccessStatusCode)
+        {
+            return await response.Content.ReadFromJsonAsync<User>();
+        }
+
+        return null;
+
+
+       
+    }
+}
+
+public class User
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
 }
 
 // Keycloak settings class to encapsulate configuration
