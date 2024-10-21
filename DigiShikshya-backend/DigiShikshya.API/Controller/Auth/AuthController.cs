@@ -1,3 +1,4 @@
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
@@ -7,12 +8,15 @@ public class AuthController : ControllerBase
 {
     private readonly KeycloakService _authService;
     private readonly ILogger<AuthController> _logger;
+    private readonly IMediator _mediator;
 
-    public AuthController(KeycloakService authService, ILogger<AuthController> logger)
+    public AuthController(KeycloakService authService,  ILogger<AuthController> logger , IMediator mediator)
     {
         _authService = authService;
         _logger = logger;
+        _mediator = mediator;
     }
+  
 
     [HttpPost("login")]
     [AllowAnonymous]
@@ -28,7 +32,8 @@ public class AuthController : ControllerBase
             }
 
             var userData = JwtTokenHelper.GetTokenInfo(token.Item1);
-            // await _authService.RegisterAsync(userData.Id!);
+            var user = new AddUserCommand { Id = userData.Id! };
+            await _mediator.Send(user);
 
             // Set the tokens as HttpOnly cookies
             SetTokenCookies(token.Item1, token.Item2);
@@ -74,7 +79,7 @@ public class AuthController : ControllerBase
                 return Unauthorized("Refresh token is missing.");
             }
 
-            var token = await _authService.GetNewAccessByRefreshToken(refreshToken!);
+            var token = await _authService.GetNewAccessByRefreshTokenAsync(refreshToken!);
             if (token.Item1 == null || token.Item2 == null)
             {
                 // Clear cookies if the refresh token is invalid

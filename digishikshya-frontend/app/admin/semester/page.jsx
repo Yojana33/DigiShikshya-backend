@@ -29,11 +29,11 @@ export default function SemesterPage() {
     return response.data.items;
   });
 
-  const mutationHandler = (mutationFn, successMessage, errorMessage) => {
+  const mutationHandler = (mutationFn) => {
     return useMutation(mutationFn, {
-      onSuccess: () => {
+      onSuccess: (data) => {
         queryClient.invalidateQueries(['semesters']);
-        toast({ title: successMessage, description: `The semester was successfully ${successMessage.toLowerCase()}.` });
+        toast({ title: successMessage, description: data.message, variant: 'success' });
         refetch();
       },
       onError: () => {
@@ -43,18 +43,15 @@ export default function SemesterPage() {
   };
 
   const addSemesterMutation = mutationHandler(
-    (semester) => axiosInstance.post('/api/v1/semester/add', semester),
-    'Semester Created', 'create'
+    (semester) => axiosInstance.post('/api/v1/semester/add', semester)
   );
 
   const updateSemesterMutation = mutationHandler(
     (semester) => axiosInstance.patch(`/api/v1/semester/update`, semester),
-    'Semester Updated', 'update'
   );
 
   const deleteSemesterMutation = mutationHandler(
-    (id) => axiosInstance.delete(`/api/v1/semester/${id}`),
-    'Semester Deleted', 'delete'
+    (id) => axiosInstance.delete(`/api/v1/semester/${id}`)
   );
 
   const handleCreateOrUpdateSemester = (semester) => {
@@ -180,6 +177,9 @@ function CreateOrEditSemesterForm({ semester = { name: '', description: '' }, on
 function SemesterList({ semesters, onEdit, onDelete }) {
   return (
     <div className="space-y-4">
+    {semesters.length === 0 && (
+      <div className="text-center">No semesters found. Create a new one to get started.</div>
+    )}
       {semesters.map((semester) => (
         <Card key={semester.id}>
           <CardHeader>

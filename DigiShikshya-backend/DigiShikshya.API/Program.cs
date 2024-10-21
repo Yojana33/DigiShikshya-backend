@@ -21,6 +21,7 @@ if (string.IsNullOrEmpty(connectionString))
 
 // Service Registration
 builder.Services.AddControllers();
+builder.Services.AddScoped<IHttpContextAccessor>();
 builder.Services.AddInfrastructureServices(configuration);
 builder.Services.AddPersistenceServices(connectionString);
 builder.Services.AddApplicationServices();
@@ -157,6 +158,14 @@ else
 
 // Application Setup
 var app = builder.Build();
+
+
+
+// Configure HttpContextHelper
+var httpContextAccessor = app.Services.GetRequiredService<IHttpContextAccessor>();
+HttpContextHelper.Configure(httpContextAccessor);
+
+
 
 app.UseCors("AllowFrontend");
 app.UseSwagger();

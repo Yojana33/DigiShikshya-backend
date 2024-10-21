@@ -12,7 +12,6 @@ import { Edit, Trash } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import axiosInstance from '@/config/axiosconfig'
 import { useToast } from '@/hooks/use-toast'
-import { Toast } from '@radix-ui/react-toast'
 import { Toaster } from '@/components/ui/toaster'
 
  const fetchBatches = async () => {
@@ -61,12 +60,12 @@ export default function BatchPage() {
 
   // Add, update, delete mutations for batches
   const addMutation = useMutation(addBatch, {
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries(['batches']);
-      toast({ title: 'Batch Created', description: 'The batch was successfully created.' });
+      toast({ title: 'Batch Created', description: data.message });
     },
-    onError: () => {
-      toast({ title: 'Error', description: 'Failed to create the batch.', variant: 'destructive' });
+    onError: (data) => {
+      toast({ title: 'Error', description: data.message, variant: 'destructive' });
     }
   });
 

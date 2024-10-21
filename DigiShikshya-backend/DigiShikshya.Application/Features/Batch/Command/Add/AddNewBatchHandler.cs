@@ -31,8 +31,7 @@ public class AddNewBatchHandler(IBatchRepository batchRepository, IHttpContextAc
             StartDate = request.StartDate,
             EndDate = request.EndDate,
             Status = (StatusEnum)request.Status, 
-            CreatedBy= httpContextAccessor.HttpContext?.Items["Name"]?.ToString() ?? "Unknown User",
-            
+            CreatedBy= HttpContextHelper.Current.User.Identity.Name,
             UpdatedAt = DateTime.Now,
             IsActive = true
         };

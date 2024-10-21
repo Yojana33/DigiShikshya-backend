@@ -28,7 +28,7 @@ public class CheckPlagiarismCommandHandler(KeycloakService keyCloakService,  Ema
             .ToList();
 
         // Fetch all student details concurrently to avoid multiple sequential requests
-        var studentTasks = studentIds.Select(id => keyCloakService.Get(id));
+        var studentTasks = studentIds.Select(id => keyCloakService.GetUserByIdAsync(id));
         var studentDetails = await Task.WhenAll(studentTasks);
 
         // Prepare email messages
