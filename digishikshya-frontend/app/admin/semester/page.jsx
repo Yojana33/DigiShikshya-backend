@@ -2,93 +2,129 @@
 
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Edit, Trash } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axiosInstance from '@/config/axiosconfig';
 import { useToast } from '@/hooks/use-toast';
+import { Toaster } from '@/components/ui/toaster';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+// API Call functions
+const fetchSemesters = async () => {
+  const response = await axiosInstance.get('/api/v1/semester/all');
+  return response.data.items;
+};
+
+const addSemester = async (semester) => {
+  const response = await axiosInstance.post('/api/v1/semester/add', semester);
+  return response.data;
+};
+
+const updateSemester = async (semester) => {
+  const response = await axiosInstance.patch(`/api/v1/semester/update`, semester);
+  return response.data;
+};
+
+const deleteSemester = async (semesterId) => {
+  const response = await axiosInstance.delete(`/api/v1/semester/${semesterId}`);
+  return response.data;
+};
 
 export default function SemesterPage() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [editingSemester, setEditingSemester] = useState(null);
 
-  const { data: semesters, error, refetch, isLoading } = useQuery(['semesters'], async () => {
-    const response = await axiosInstance.get('/api/v1/semester/all');
-    return response.data.items;
-  });
-
-  const { data: courses, courseError, courseRefetch, courseIsLoading } = useQuery(['courses'], async () => {
-    const response = await axiosInstance.get('/api/v1/course/all');
-    return response.data.items;
-  });
-
-  const mutationHandler = (mutationFn, successMessage, errorMessage) => {
-    return useMutation(mutationFn, {
-      onSuccess: () => {
-        queryClient.invalidateQueries(['semesters']);
-        toast({ title: successMessage, description: `The semester was successfully ${successMessage.toLowerCase()}.` });
-        refetch();
+  // Fetch semesters data from API
+  const { data: semesters, error, isLoading } = useQuery(
+    ['semesters'],
+    fetchSemesters,
+    {
+      onSuccess: (data) => {
+        console.log('Successfully fetched semesters:', data);
       },
-      onError: () => {
-        toast({ title: 'Error', description: `Failed to ${errorMessage.toLowerCase()} the semester.`, variant: 'destructive' });
+      onError: (error) => {
+        console.error('Error fetching semesters:', error);
       }
-    });
+    }
+  );
+
+  // Mutations for managing semesters
+  const addMutation = useMutation(addSemester, {
+    onSuccess: (data) => {
+      queryClient.invalidateQueries(['semesters']);
+      toast({ title: 'Semester Created', description: data.message });
+    },
+    onError: (data) => {
+      toast({ title: 'Error', description: data.message, variant: 'destructive' });
+    }
+  });
+
+  const updateMutation = useMutation(updateSemester, {
+    onSuccess: (data) => {
+      queryClient.invalidateQueries(['semesters']);
+      toast({ title: 'Semester Updated', description: data.message });
+    },
+    onError: (data) => {
+      toast({ title: 'Error', description: data.message, variant: 'destructive' });
+    }
+  });
+
+  const deleteMutation = useMutation(deleteSemester, {
+    onSuccess: (data) => {
+      queryClient.invalidateQueries(['semesters']);
+      toast({ title: 'Semester Deleted', description: data.message });
+    },
+    onError: (data) => {
+      toast({ title: 'Error', description: data.message, variant: 'destructive' });
+    }
+  });
+
+  // Handlers for creating, editing, and deleting semesters
+  const handleCreateSemester = (newSemester) => {
+    addMutation.mutate(newSemester);
   };
 
-  const addSemesterMutation = mutationHandler(
-    (semester) => axiosInstance.post('/api/v1/semester/add', semester),
-    'Semester Created', 'create'
-  );
-
-  const updateSemesterMutation = mutationHandler(
-    (semester) => axiosInstance.patch(`/api/v1/semester/update`, semester),
-    'Semester Updated', 'update'
-  );
-
-  const deleteSemesterMutation = mutationHandler(
-    (id) => axiosInstance.delete(`/api/v1/semester/${id}`),
-    'Semester Deleted', 'delete'
-  );
-
-  const handleCreateOrUpdateSemester = (semester) => {
-    if (semester.id) {
-      updateSemesterMutation.mutate(semester);
-    } else {
-      addSemesterMutation.mutate(semester);
-    }
+  const handleEditSemester = (editedSemester) => {
+    updateMutation.mutate(editedSemester);
     setEditingSemester(null);
   };
 
+  const handleDeleteSemester = (semesterId) => {
+    deleteMutation.mutate(semesterId);
+  };
+
+  // Handling loading and error states
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <div>Loading semesters...</div>; // You could add a spinner here
   }
 
   if (error) {
-    return <div>Error: {error.message}</div>;
+    return <div>Error loading semesters: {error.message}</div>;
   }
 
   return (
     <div className="container mx-auto py-10">
+      <Toaster /> {/* Toast notifications */}
       <Tabs defaultValue="create" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="create">Create Semester</TabsTrigger>
           <TabsTrigger value="view">View Semesters</TabsTrigger>
         </TabsList>
         <TabsContent value="create">
-          <CreateOrEditSemesterForm onSave={handleCreateOrUpdateSemester} courses={courses} />
+          <CreateSemesterForm onSave={handleCreateSemester} />
         </TabsContent>
         <TabsContent value="view">
           <SemesterList 
             semesters={semesters} 
             onEdit={setEditingSemester} 
-            onDelete={(id) => deleteSemesterMutation.mutate(id)} 
+            onDelete={handleDeleteSemester}
           />
         </TabsContent>
       </Tabs>
@@ -102,7 +138,7 @@ export default function SemesterPage() {
             </DialogDescription>
           </DialogHeader>
           {editingSemester && (
-            <CreateOrEditSemesterForm semester={editingSemester} onSave={handleCreateOrUpdateSemester} courses={courses}/>
+            <EditSemesterForm semester={editingSemester} onSave={handleEditSemester} />
           )}
         </DialogContent>
       </Dialog>
@@ -110,23 +146,28 @@ export default function SemesterPage() {
   );
 }
 
-function CreateOrEditSemesterForm({ semester = { name: '', description: '' }, onSave, courses }) {
-  const [semesterName, setSemesterName] = useState(semester.semesterName);
-  const [newDescription, setNewDescription] = useState(semester.description);
-  const [selectedCourse, setSelectedCourse] = useState(semester.courseId);
-  const [newStartDate, setNewStartDate] = useState(semester.startDate);
-  const [newEndDate, setNewEndDate] = useState(semester.endDate);
+function CreateSemesterForm({ onSave }) {
+  const [semesterName, setSemesterName] = useState('');
+  const [description, setDescription] = useState('');
+  const [courseId, setCourseId] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave({ ...semester, semesterName: semesterName, description: newDescription, courseId: selectedCourse, startDate: newStartDate, endDate: newEndDate });
+    onSave({ semesterName, description, courseId, startDate, endDate });
+    setSemesterName('');
+    setDescription('');
+    setCourseId('');
+    setStartDate('');
+    setEndDate('');
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{semester.id ? 'Edit Semester' : 'Create New Semester'}</CardTitle>
-        <CardDescription>{semester.id ? 'Modify the semester details' : 'Enter the details for a new semester'}</CardDescription>
+        <CardTitle>Create New Semester</CardTitle>
+        <CardDescription>Enter the details for a new semester</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -139,38 +180,99 @@ function CreateOrEditSemesterForm({ semester = { name: '', description: '' }, on
               required 
             />
           </div>
-          <div className='space-y-2'>
+          <div className="space-y-2">
             <Label htmlFor="course">Course</Label>
-            <Select value={selectedCourse} onValueChange={setSelectedCourse}>
+            <Select value={courseId} onValueChange={setCourseId} required>
               <SelectTrigger>
                 <SelectValue placeholder="Select course" />
               </SelectTrigger>
               <SelectContent>
-                {courses?.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                ))}
+                {/* Assume courses data is fetched and passed down as a prop */}
               </SelectContent>
             </Select>
           </div>
-
-            <div className='space-y-2'>
-              <Label htmlFor="startDate">Start Date</Label>
-              <Input type="date" id="startDate" value={newStartDate} onChange={(e) => setNewStartDate(e.target.value)} required />
-            </div>
-            <div className='space-y-2'>
-              <Label htmlFor="endDate">End Date</Label>
-              <Input type="date" id="endDate" value={newEndDate} onChange={(e) => setNewEndDate(e.target.value)} required />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="startDate">Start Date</Label>
+            <Input type="date" id="startDate" value={startDate} onChange={(e) => setStartDate(e.target.value)} required />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="endDate">End Date</Label>
+            <Input type="date" id="endDate" value={endDate} onChange={(e) => setEndDate(e.target.value)} required />
+          </div>
           <div className="space-y-2">
             <Label htmlFor="description">Semester Description</Label>
             <Textarea 
               id="description" 
-              value={newDescription} 
-              onChange={(e) => setNewDescription(e.target.value)} 
+              value={description} 
+              onChange={(e) => setDescription(e.target.value)} 
               required 
             />
           </div>
-          <Button type="submit" className="w-full">{semester.id ? 'Save Changes' : 'Create Semester'}</Button>
+          <Button type="submit" className="w-full">Create Semester</Button>
+        </form>
+      </CardContent>
+    </Card>
+  );
+}
+
+function EditSemesterForm({ semester, onSave }) {
+  const [semesterName, setSemesterName] = useState(semester.semesterName);
+  const [description, setDescription] = useState(semester.description);
+  const [courseId, setCourseId] = useState(semester.courseId);
+  const [startDate, setStartDate] = useState(semester.startDate);
+  const [endDate, setEndDate] = useState(semester.endDate);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSave({ id: semester.id, semesterName, description, courseId, startDate, endDate });
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Edit Semester</CardTitle>
+        <CardDescription>Modify the semester details</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">Semester Name</Label>
+            <Input 
+              id="name" 
+              value={semesterName} 
+              onChange={(e) => setSemesterName(e.target.value)} 
+              required 
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="course">Course</Label>
+            <Select value={courseId} onValueChange={setCourseId} required>
+              <SelectTrigger>
+                <SelectValue placeholder="Select course" />
+              </SelectTrigger>
+              <SelectContent>
+                {/* Assume courses data is fetched and passed down as a prop */}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="startDate">Start Date</Label>
+            <Input type="date" id="startDate" value={startDate} onChange={(e) => setStartDate(e.target.value)} required />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="endDate">End Date</Label>
+            <Input type="date" id="endDate" value={endDate} onChange={(e) => setEndDate(e.target.value)} required />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="description">Semester Description</Label>
+            <Textarea 
+              id="description" 
+              value={description} 
+              onChange={(e) => setDescription(e.target.value)} 
+              required 
+            />
+          </div>
+          <Button type="submit" className="w-full">Save Changes</Button>
         </form>
       </CardContent>
     </Card>
@@ -178,6 +280,10 @@ function CreateOrEditSemesterForm({ semester = { name: '', description: '' }, on
 }
 
 function SemesterList({ semesters, onEdit, onDelete }) {
+  if (!semesters || semesters.length === 0) {
+    return <div>No semesters available</div>; // Handle no semesters state
+  }
+
   return (
     <div className="space-y-4">
       {semesters.map((semester) => (
@@ -197,6 +303,9 @@ function SemesterList({ semesters, onEdit, onDelete }) {
           </CardHeader>
           <CardContent>
             <p>{semester.description}</p>
+            <p>Course ID: {semester.courseId}</p>
+            <p>Start Date: {new Date(semester.startDate).toLocaleDateString()}</p>
+            <p>End Date: {new Date(semester.endDate).toLocaleDateString()}</p>
           </CardContent>
         </Card>
       ))}

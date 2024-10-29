@@ -8,22 +8,33 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Bell, Search, Eye } from 'lucide-react'
-import axios from 'axios'
-import { useQuery } from '@tanstack/react-query'
+import { useToast } from '@/hooks/use-toast';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import axiosInstance from '@/config/axiosconfig';
+import { useToast } from '@/hooks/use-toast';
 import { getAssignments } from '@/lib/api'
 
 export default function ViewAssignmentsPage() {
 
   // Fetch assignments API call within the page
-  const fetchAssignments = async () => {
-    const { data } = await axios.get(getAssignments); // Replace with your actual API URL
-    return data;
-  }
-
-  // Use react-query to handle the fetched data
-  const { data: assignmentData, error, isLoading } = useQuery(['assignments'], fetchAssignments);
+ const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedAssignment, setSelectedAssignment] = useState(null);
+
+  // Fetch assignments from the API
+  const { data: assignmentData, error, isLoading, refetch } = useQuery(['assignments'], async () => {
+    const response = await axiosInstance.get('/api/v1/assignment/all'); // Adjust the API endpoint
+    return response.data.items; // Adjust according to your API response structure
+  });
+
+  // Handle loading and error states
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error.message}</div>;
+  }
 
   // Filter assignments based on search term
   const filteredAssignments = assignmentData?.filter(assignment =>

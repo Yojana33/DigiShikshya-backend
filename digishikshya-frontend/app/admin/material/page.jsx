@@ -8,64 +8,38 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Bell, Search, Eye, FileText, Video, Image as ImageIcon } from 'lucide-react'
-import { fetchMaterials, addMaterial, updateMaterial, deleteMaterial } from '@/lib/api';
-import { useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
+import axiosInstance from '@/lib/axios' // Assuming axiosInstance is already configured
+import { useToast } from "@/components/ui/use-toast" // Your custom toast hook
 
 export default function ViewMaterialsPage() {
-
-  const getAllMaterials = async () => {
-    await axiosInstance.get('/api/materials')
-  }
-
-  const addMaterial = async (material) => {
-    await axiosInstance.post('/api/materials', material)
-  }
-
-  const updateMaterial = async (material) => {
-    await axiosInstance.put(`/api/materials/${material.id}`, material)
-  }
-
-  const deleteMaterial = async (id) => {
-    await axiosInstance.delete(`/api/materials/${id}`)
-  }
-
-  const { mutate: addMaterialMutation } = useMutation({
-    mutationFn: addMaterial,
-    onSuccess: () => {
-      toast.success('Material added successfully');
-      queryClient.invalidateQueries(['materials']);
-    },
-    onError: () => {
-      toast.error('Failed to add material');
-    }
-  });
-
-  const handleAddMaterial = (material) => {
-    addMaterialMutation(material);
-  }
-
-  const handleUpdateMaterial = (material) => {
-    updateMaterialMutation(material);
-  }
-
-  const handleDeleteMaterial = (id) => {
-    deleteMaterialMutation(id);
-  }
-
-  
-
-  const { data: materials, error, isLoading } = useQuery(['materials'], getAllMaterials);
-
-  const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMaterial, setSelectedMaterial] = useState(null);
 
-  const filteredMaterials = materials?.filter(material =>
+  // Fetch materials from the API
+  const { data: materialsData, error, isLoading, refetch } = useQuery(['materials'], async () => {
+    const response = await axiosInstance.get('/api/v1/material/all'); // Adjust the API endpoint
+    return response.data.items; // Adjust according to your API response structure
+  });
+
+  // Handle loading and error states
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error.message}</div>;
+  }
+
+  // Filter materials based on search input
+  const filteredMaterials = materialsData?.filter(material =>
     Object.values(material).some(value =>
       value.toString().toLowerCase().includes(searchTerm.toLowerCase())
     )
   );
 
+  // Determine the correct file icon based on material type
   const getFileIcon = (type) => {
     switch (type) {
       case 'pdf':
@@ -79,6 +53,7 @@ export default function ViewMaterialsPage() {
     }
   }
 
+  // Render preview based on material type
   const renderPreview = (material) => {
     switch (material.type) {
       case 'pdf':
@@ -109,16 +84,8 @@ export default function ViewMaterialsPage() {
     }
   }
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return <div>Error: {error.message}</div>;
-  }
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      <Toaster />
       <header className="bg-white shadow-sm z-10 p-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-900">View Materials</h1>
@@ -167,7 +134,7 @@ export default function ViewMaterialsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredMaterials.map((material) => (
+                    {filteredMaterials?.map((material) => (
                       <TableRow key={material.id}>
                         <TableCell>{material.title}</TableCell>
                         <TableCell>{getFileIcon(material.type)}</TableCell>

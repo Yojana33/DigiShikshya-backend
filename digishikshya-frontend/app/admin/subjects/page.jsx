@@ -1,100 +1,150 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Edit, Trash, Search } from 'lucide-react'
-import { fetchSubjects, addSubject, updateSubject, deleteSubject, fetchBatches, fetchCourses, fetchSemesters } from '@/lib/api';
+import { useState, useEffect } from 'react';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import axiosInstance from '@/config/axiosconfig';
+import { useToast } from '@/hooks/use-toast';
+import { Toaster } from '@/components/ui/toaster';
+import { Edit, Trash } from 'lucide-react';
 
-export default function SubjectPage() {
+// Fetching subjects, batches, courses, and semesters from API
+const fetchSubjects = async () => {
+  const response = await axiosInstance.get('/api/v1/subject/all');
+  return response.data.items;
+};
+
+const fetchBatches = async () => {
+  const response = await axiosInstance.get('/api/v1/batch/all');
+  return response.data.items;
+};
+
+const fetchCourses = async () => {
+  const response = await axiosInstance.get('/api/v1/course/all');
+  return response.data.items;
+};
+
+const fetchSemesters = async () => {
+  const response = await axiosInstance.get('/api/v1/semester/all');
+  return response.data.items;
+};
+
+// Adding a new subject
+const addSubject = async (subject) => {
+  const response = await axiosInstance.post('/api/v1/subject/add', subject);
+  return response.data;
+};
+
+// Updating an existing subject
+const updateSubject = async (subject) => {
+  const response = await axiosInstance.patch(`/api/v1/subject/update`, subject);
+  return response.data;
+};
+
+// Deleting a subject
+const deleteSubject = async (subjectId) => {
+  const response = await axiosInstance.delete(`/api/v1/subject/delete`);
+  return response.data;
+};
+
+export default function SubjectsPage() {
   const queryClient = useQueryClient();
-  const { data: subjects, error: subjectsError, isLoading: isLoadingSubjects } = useQuery(['subjects'], fetchSubjects);
-  const { data: batches, error: batchesError, isLoading: isLoadingBatches } = useQuery(['batches'], fetchBatches);
-  const { data: courses, error: coursesError, isLoading: isLoadingCourses } = useQuery(['courses'], fetchCourses);
-  const { data: semesters, error: semestersError, isLoading: isLoadingSemesters } = useQuery(['semesters'], fetchSemesters);
-  const [editingSubject, setEditingSubject] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filteredSubjects, setFilteredSubjects] = useState([]);
+  const { toast } = useToast();
 
-  useEffect(() => {
-    if (subjects) {
-      const results = subjects.filter(subject =>
-        Object.values(subject).some(value => 
-          value.toString().toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      );
-      setFilteredSubjects(results);
+  // Fetch subjects, batches, courses, and semesters
+  const { data: subjects, error: subjectsError, isLoading: isLoadingSubjects } = useQuery(
+    ['subjects'],
+    fetchSubjects,
+    {
+      onError: (error) => {
+        console.error('Error fetching subjects:', error);
+      }
     }
-  }, [subjects, searchTerm]);
+  );
 
-  const addSubjectMutation = useMutation(addSubject, {
-    onSuccess: () => {
+  const { data: batches } = useQuery(['batches'], fetchBatches);
+  const { data: courses } = useQuery(['courses'], fetchCourses);
+  const { data: semesters } = useQuery(['semesters'], fetchSemesters);
+
+  // Mutations for adding, updating, and deleting subjects
+  const addMutation = useMutation(addSubject, {
+    onSuccess: (data) => {
       queryClient.invalidateQueries(['subjects']);
+      toast({ title: 'Subject Created', description: data.message });
     },
+    onError: (data) => {
+      toast({ title: 'Error', description: data.message, variant: 'destructive' });
+    }
   });
 
-  const updateSubjectMutation = useMutation(updateSubject, {
-    onSuccess: () => {
+  const updateMutation = useMutation(updateSubject, {
+    onSuccess: (data) => {
       queryClient.invalidateQueries(['subjects']);
+      toast({ title: 'Subject Updated', description: data.message });
     },
+    onError: (data) => {
+      toast({ title: 'Error', description: data.message, variant: 'destructive' });
+    }
   });
 
-  const deleteSubjectMutation = useMutation(deleteSubject, {
-    onSuccess: () => {
+  const deleteMutation = useMutation(deleteSubject, {
+    onSuccess: (data) => {
       queryClient.invalidateQueries(['subjects']);
+      toast({ title: 'Subject Deleted', description: data.message });
     },
+    onError: (data) => {
+      toast({ title: 'Error', description: data.message, variant: 'destructive' });
+    }
   });
+
+  const [editingSubject, setEditingSubject] = useState(null);
 
   const handleCreateSubject = (newSubject) => {
-    addSubjectMutation.mutate(newSubject);
+    addMutation.mutate(newSubject);
   };
 
   const handleEditSubject = (editedSubject) => {
-    updateSubjectMutation.mutate(editedSubject);
+    updateMutation.mutate(editedSubject);
     setEditingSubject(null);
   };
 
   const handleDeleteSubject = (subjectId) => {
-    deleteSubjectMutation.mutate(subjectId);
+    deleteMutation.mutate(subjectId);
   };
 
-  if (isLoadingSubjects || isLoadingBatches || isLoadingCourses || isLoadingSemesters) {
+  // Handling loading and error states
+  if (isLoadingSubjects) {
     return <div>Loading...</div>;
   }
 
-  if (subjectsError || batchesError || coursesError || semestersError) {
-    return <div>Error: {subjectsError?.message || batchesError?.message || coursesError?.message || semestersError?.message}</div>;
+  if (subjectsError) {
+    return <div>Error loading subjects</div>;
   }
 
   return (
     <div className="container mx-auto py-10">
+      <Toaster />
       <Tabs defaultValue="create" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="create">Create Subject</TabsTrigger>
+          <TabsTrigger value="create">Add Subject</TabsTrigger>
           <TabsTrigger value="view">View Subjects</TabsTrigger>
         </TabsList>
         <TabsContent value="create">
-          <CreateSubjectForm onCreateSubject={handleCreateSubject} />
+          <CreateSubjectForm 
+            onCreateSubject={handleCreateSubject} 
+            batches={batches} 
+            courses={courses} 
+            semesters={semesters} 
+          />
         </TabsContent>
         <TabsContent value="view">
-          <div className="mb-4">
-            <div className="relative">
-              <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search subjects..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8"
-              />
-            </div>
-          </div>
           <SubjectList 
-            subjects={filteredSubjects} 
+            subjects={subjects} 
             onEdit={setEditingSubject} 
             onDelete={handleDeleteSubject} 
           />
@@ -110,40 +160,40 @@ export default function SubjectPage() {
             </DialogDescription>
           </DialogHeader>
           {editingSubject && (
-            <EditSubjectForm subject={editingSubject} onSave={handleEditSubject} />
+            <EditSubjectForm 
+              subject={editingSubject} 
+              onSave={handleEditSubject} 
+              batches={batches} 
+              courses={courses} 
+              semesters={semesters} 
+            />
           )}
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }
 
-function CreateSubjectForm({ onCreateSubject }) {
-  const [name, setName] = useState('')
-  const [code, setCode] = useState('')
-  const [description, setDescription] = useState('')
-  const [creditHours, setCreditHours] = useState('')
-  const [batch, setBatch] = useState('')
-  const [course, setCourse] = useState('')
-  const [semester, setSemester] = useState('')
+function CreateSubjectForm({ onCreateSubject, batches, courses, semesters }) {
+  const [name, setName] = useState('');
+  const [selectedBatch, setSelectedBatch] = useState('');
+  const [selectedCourse, setSelectedCourse] = useState('');
+  const [selectedSemester, setSelectedSemester] = useState('');
 
   const handleSubmit = (e) => {
-    e.preventDefault()
-    onCreateSubject({ name, code, description, creditHours: parseInt(creditHours), batch, course, semester })
-    setName('')
-    setCode('')
-    setDescription('')
-    setCreditHours('')
-    setBatch('')
-    setCourse('')
-    setSemester('')
-  }
+    e.preventDefault();
+    onCreateSubject({ name, batchId: selectedBatch, courseId: selectedCourse, semesterId: selectedSemester });
+    setName('');
+    setSelectedBatch('');
+    setSelectedCourse('');
+    setSelectedSemester('');
+  };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Create New Subject</CardTitle>
-        <CardDescription>Enter the details for a new subject</CardDescription>
+        <CardTitle>Add New Subject</CardTitle>
+        <CardDescription>Enter the details for the new subject</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -157,143 +207,64 @@ function CreateSubjectForm({ onCreateSubject }) {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="code">Subject Code</Label>
-            <Input 
-              id="code" 
-              value={code} 
-              onChange={(e) => setCode(e.target.value)} 
-              required 
-            />
+            <Label htmlFor="batch">Select Batch</Label>
+            <select
+              id="batch"
+              value={selectedBatch}
+              onChange={(e) => setSelectedBatch(e.target.value)}
+              required
+            >
+              <option value="">Select Batch</option>
+              {batches.map((batch) => (
+                <option key={batch.id} value={batch.id}>{batch.name}</option>
+              ))}
+            </select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Input 
-              id="description" 
-              value={description} 
-              onChange={(e) => setDescription(e.target.value)} 
-              required 
-            />
+            <Label htmlFor="course">Select Course</Label>
+            <select
+              id="course"
+              value={selectedCourse}
+              onChange={(e) => setSelectedCourse(e.target.value)}
+              required
+            >
+              <option value="">Select Course</option>
+              {courses.map((course) => (
+                <option key={course.id} value={course.id}>{course.name}</option>
+              ))}
+            </select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="creditHours">Credit Hours</Label>
-            <Input 
-              id="creditHours" 
-              type="number" 
-              value={creditHours} 
-              onChange={(e) => setCreditHours(e.target.value)} 
-              required 
-            />
+            <Label htmlFor="semester">Select Semester</Label>
+            <select
+              id="semester"
+              value={selectedSemester}
+              onChange={(e) => setSelectedSemester(e.target.value)}
+              required
+            >
+              <option value="">Select Semester</option>
+              {semesters.map((semester) => (
+                <option key={semester.id} value={semester.id}>{semester.name}</option>
+              ))}
+            </select>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="batch">Batch</Label>
-            <Select value={batch} onValueChange={setBatch}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select batch" />
-              </SelectTrigger>
-              <SelectContent>
-                {batches.map((b) => (
-                  <SelectItem key={b} value={b}>{b}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="course">Course</Label>
-            <Select value={course} onValueChange={setCourse}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select course" />
-              </SelectTrigger>
-              <SelectContent>
-                {courses.map((c) => (
-                  <SelectItem key={c} value={c}>{c}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="semester">Semester</Label>
-            <Select value={semester} onValueChange={setSemester}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select semester" />
-              </SelectTrigger>
-              <SelectContent>
-                {semesters.map((s) => (
-                  <SelectItem key={s} value={s}>{s}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <Button type="submit" className="w-full">Create Subject</Button>
+          <Button type="submit" className="w-full">Add Subject</Button>
         </form>
       </CardContent>
     </Card>
-  )
+  );
 }
 
-function SubjectList({ subjects, onEdit, onDelete }) {
-  return (
-    <div className="space-y-4">
-      {subjects.map((subject) => (
-        <Card key={subject.id}>
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <CardTitle>{subject.name}</CardTitle>
-              <div className="space-x-2">
-                <Button variant="outline" size="icon" onClick={() => onEdit(subject)}>
-                  <Edit className="h-4 w-4" />
-                  <span className="sr-only">Edit</span>
-                </Button>
-                <Button variant="outline" size="icon" onClick={() => onDelete(subject.id)}>
-                  <Trash className="h-4 w-4" />
-                  <span className="sr-only">Delete</span>
-                </Button>
-              </div>
-            </div>
-            <CardDescription>{subject.code}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm font-medium">Description:</p>
-                <p>{subject.description}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium">Credit Hours:</p>
-                <p>{subject.creditHours}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium">Batch:</p>
-                <p>{subject.batch}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium">Course:</p>
-                <p>{subject.course}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium">Semester:</p>
-                <p>{subject.semester}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  )
-}
-
-function EditSubjectForm({ subject, onSave }) {
-  const [name, setName] = useState(subject.name)
-  const [code, setCode] = useState(subject.code)
-  const [description, setDescription] = useState(subject.description)
-  const [creditHours, setCreditHours] = useState(subject.creditHours)
-  const [batch, setBatch] = useState(subject.batch)
-  const [course, setCourse] = useState(subject.course)
-  const [semester, setSemester] = useState(subject.semester)
+function EditSubjectForm({ subject, onSave, batches, courses, semesters }) {
+  const [name, setName] = useState(subject.name);
+  const [selectedBatch, setSelectedBatch] = useState(subject.batchId);
+  const [selectedCourse, setSelectedCourse] = useState(subject.courseId);
+  const [selectedSemester, setSelectedSemester] = useState(subject.semesterId);
 
   const handleSubmit = (e) => {
-    e.preventDefault()
-    onSave({ ...subject, name, code, description, creditHours: parseInt(creditHours), batch, course, semester })
-  }
+    e.preventDefault();
+    onSave({ id: subject.id, name, batchId: selectedBatch, courseId: selectedCourse, semesterId: selectedSemester });
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -307,75 +278,65 @@ function EditSubjectForm({ subject, onSave }) {
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="edit-code">Subject Code</Label>
-        <Input 
-          id="edit-code" 
-          value={code} 
-          onChange={(e) => setCode(e.target.value)} 
-          required 
-        />
+        <Label htmlFor="edit-batch">Select Batch</Label>
+        <select
+          id="edit-batch"
+          value={selectedBatch}
+          onChange={(e) => setSelectedBatch(e.target.value)}
+          required
+        >
+          {batches.map((batch) => (
+            <option key={batch.id} value={batch.id}>{batch.name}</option>
+          ))}
+        </select>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="edit-description">Description</Label>
-        <Input 
-          id="edit-description" 
-          value={description} 
-          onChange={(e) => setDescription(e.target.value)} 
-          required 
-        />
+        <Label htmlFor="edit-course">Select Course</Label>
+        <select
+          id="edit-course"
+          value={selectedCourse}
+          onChange={(e) => setSelectedCourse(e.target.value)}
+          required
+        >
+          {courses.map((course) => (
+            <option key={course.id} value={course.id}>{course.name}</option>
+          ))}
+        </select>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="edit-creditHours">Credit Hours</Label>
-        <Input 
-          id="edit-creditHours" 
-          type="number" 
-          value={creditHours} 
-          onChange={(e) => setCreditHours(e.target.value)} 
-          required 
-        />
+        <Label htmlFor="edit-semester">Select Semester</Label>
+        <select
+          id="edit-semester"
+          value={selectedSemester}
+          onChange={(e) => setSelectedSemester(e.target.value)}
+          required
+        >
+          {semesters.map((semester) => (
+            <option key={semester.id} value={semester.id}>{semester.name}</option>
+          ))}
+        </select>
       </div>
-      <div className="space-y-2">
-        <Label htmlFor="edit-batch">Batch</Label>
-        <Select value={batch} onValueChange={setBatch}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select batch" />
-          </SelectTrigger>
-          <SelectContent>
-            {batches.map((b) => (
-              <SelectItem key={b} value={b}>{b}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="edit-course">Course</Label>
-        <Select value={course} onValueChange={setCourse}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select course" />
-          </SelectTrigger>
-          <SelectContent>
-            {courses.map((c) => (
-              <SelectItem key={c} value={c}>{c}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="edit-semester">Semester</Label>
-        <Select value={semester} onValueChange={setSemester}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select semester" />
-          </SelectTrigger>
-          <SelectContent>
-            {semesters.map((s) => (
-              <SelectItem key={s} value={s}>{s}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <DialogFooter>
-        <Button type="submit">Save changes</Button>
-      </DialogFooter>
+      <Button type="submit" className="w-full">Save Changes</Button>
     </form>
-  )
+  );
+}
+
+function SubjectList({ subjects, onEdit, onDelete }) {
+  return (
+    <div>
+      {subjects.length === 0 ? (
+        <div>No subjects available.</div>
+      ) : (
+        subjects.map(subject => (
+          <div key={subject.id} className="flex justify-between items-center mb-2">
+            <div>{subject.name} (Batch: {subject.batchId}, Course: {subject.courseId}, Semester: {subject.semesterId})</div>
+            <div>
+              <Button onClick={() => onEdit(subject)}><Edit /></Button>
+              <Button onClick={() => onDelete(subject.id)}><Trash /></Button>
+            </div>
+          </div>
+        ))
+      )}
+    </div>
+  );
 }
