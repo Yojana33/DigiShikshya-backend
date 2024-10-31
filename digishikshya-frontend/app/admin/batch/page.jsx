@@ -70,22 +70,22 @@ export default function BatchPage() {
   });
 
   const updateMutation = useMutation(updateBatch, {
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries(['batches']);
-      toast({ title: 'Batch Updated', description: 'The batch was successfully updated.' });
+      toast({ title: 'Batch Updated', description: data.message });
     },
-    onError: () => {
-      toast({ title: 'Error', description: 'Failed to update the batch.', variant: 'destructive' });
+    onError: (data) => {
+      toast({ title: 'Error', description: data.message, variant: 'destructive' });
     }
   });
 
   const deleteMutation = useMutation(deleteBatch, {
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries(['batches']);
-      toast({ title: 'Batch Deleted', description: 'The batch was successfully deleted.' });
+      toast({ title: 'Batch Deleted', description: data.message });
     },
-    onError: () => {
-      toast({ title: 'Error', description: 'Failed to delete the batch.', variant: 'destructive' });
+    onError: (data) => {
+      toast({ title: 'Error', description:data.message, variant: 'destructive' });
     }
   });
 

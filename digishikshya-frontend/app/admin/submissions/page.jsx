@@ -1,69 +1,57 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Bell, Search, Eye, FileText, Download, File, Image as ImageIcon } from 'lucide-react'
-import { fetchSubmissions, addSubmission, updateSubmission, deleteSubmission } from '@/lib/api';
+import { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Bell, Search, Eye, Download, FileText, Image as ImageIcon } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import axiosInstance from '@/config/axiosconfig';
+import { useToast } from '@/hooks/use-toast';
 
 export default function ViewSubmissionsPage() {
-  const queryClient = useQueryClient();
-  const { data: submissions, error, isLoading } = useQuery(['submissions'], fetchSubmissions);
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSubmission, setSelectedSubmission] = useState(null);
 
+  // Fetch submissions from the API
+  const { data: submissions, error, isLoading } = useQuery(['submissions'], async () => {
+    const response = await axiosInstance.get('/api/v1/submission/all'); // Adjust the API endpoint
+    return response.data.items; // Adjust according to your API response structure
+  });
+
+  // Handle loading and error states
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error.message}</div>;
+  }
+
+  // Filter submissions based on search term
   const filteredSubmissions = submissions?.filter(submission =>
     Object.values(submission).some(value =>
       value.toString().toLowerCase().includes(searchTerm.toLowerCase())
     )
   );
 
+  // Render file icon based on file type
   const getFileIcon = (fileType) => {
     switch (fileType) {
       case 'pdf':
-        return <FileText className="h-5 w-5" />
+        return <FileText className="h-5 w-5" />;
       case 'image':
-        return <ImageIcon className="h-5 w-5" />
+        return <ImageIcon className="h-5 w-5" />;
       default:
-        return <File className="h-5 w-5" />
+        return <Download className="h-5 w-5" />;
     }
-  }
+  };
 
-  const renderFilePreview = (submission) => {
-    switch (submission.fileType) {
-      case 'pdf':
-        return (
-          <iframe
-            src={submission.fileUrl}
-            className="w-full h-[600px]"
-            title={`${submission.assignmentTitle} - ${submission.studentName}`}
-          />
-        )
-      case 'image':
-        return (
-          <img
-            src={submission.fileUrl}
-            alt={`${submission.assignmentTitle} - ${submission.studentName}`}
-            className="max-w-full h-auto"
-          />
-        )
-      case 'txt':
-        return (
-          <iframe
-            src={submission.fileUrl}
-            className="w-full h-[600px]"
-            title={`${submission.assignmentTitle} - ${submission.studentName}`}
-          />
-        )
-      default:
-        return <p>Preview not available for this file type. Please download to view.</p>
-    }
-  }
-
+  // Render submission preview
   const renderPreview = (submission) => {
     return (
       <div className="space-y-4">
@@ -84,21 +72,10 @@ export default function ViewSubmissionsPage() {
             </Button>
           </div>
         </div>
-        <div className="mt-4 border rounded-lg p-4">
-          <h3 className="text-lg font-semibold mb-2">File Preview</h3>
-          {renderFilePreview(submission)}
-        </div>
       </div>
-    )
-  }
+    );
+  };
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return <div>Error: {error.message}</div>;
-  }
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       <header className="bg-white shadow-sm z-10 p-4">
@@ -150,7 +127,7 @@ export default function ViewSubmissionsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredSubmissions.map((submission) => (
+                    {filteredSubmissions?.map((submission) => (
                       <TableRow key={submission.id}>
                         <TableCell>{submission.assignmentTitle}</TableCell>
                         <TableCell>{submission.studentName}</TableCell>
@@ -190,5 +167,5 @@ export default function ViewSubmissionsPage() {
         </div>
       </main>
     </div>
-  )
+  );
 }

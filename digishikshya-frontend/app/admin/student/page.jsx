@@ -1,220 +1,281 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Edit, Trash, Search } from 'lucide-react'
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { fetchEnrollments, addEnrollment, updateEnrollment, deleteEnrollment, fetchStudents, fetchBatches, fetchCourses, fetchSemesters } from '@/lib/api';
+import { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Edit, Trash } from 'lucide-react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import axiosInstance from '@/config/axiosconfig';
+import { useToast } from '@/hooks/use-toast';
+import { Toaster } from '@/components/ui/toaster';
+
+const fetchStudents = async () => {
+  const response = await axiosInstance.get('/api/v1/enrollment/all');
+  return response.data.items;
+};
+
+const fetchCourses = async () => {
+  const response = await axiosInstance.get('/api/v1/course/all');
+  return response.data.items;
+};
+
+const fetchBatches = async () => {
+  const response = await axiosInstance.get('/api/v1/batch/all');
+  return response.data.items;
+};
+
+const fetchSemesters = async () => {
+  const response = await axiosInstance.get('/api/v1/semester/all');
+  return response.data.items;
+};
+
+const addStudent = async (student) => {
+  const response = await axiosInstance.post('/api/v1/enrollment/enroll', student);
+  return response.data;
+};
+
+const updateStudent = async (student) => {
+  const response = await axiosInstance.patch(`/api/v1/enrollment/update`, student);
+  return response.data;
+};
+
+const deleteStudent = async (studentId) => {
+  const response = await axiosInstance.delete(`/api/v1/enrollment/delete`);
+  return response.data;
+};
 
 export default function EnrollStudentPage() {
   const queryClient = useQueryClient();
-  const { data: enrollments, error: enrollmentsError, isLoading: isLoadingEnrollments } = useQuery(['enrollments'], fetchEnrollments);
-  const { data: students, error: studentsError, isLoading: isLoadingStudents } = useQuery(['students'], fetchStudents);
-  const { data: batches, error: batchesError, isLoading: isLoadingBatches } = useQuery(['batches'], fetchBatches);
-  const { data: courses, error: coursesError, isLoading: isLoadingCourses } = useQuery(['courses'], fetchCourses);
-  const { data: semesters, error: semestersError, isLoading: isLoadingSemesters } = useQuery(['semesters'], fetchSemesters);
-  const [editingEnrollment, setEditingEnrollment] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filteredEnrollments, setFilteredEnrollments] = useState([]);
+  const { toast } = useToast();
 
-  useEffect(() => {
-    if (enrollments) {
-      const results = enrollments.filter(enrollment =>
-        Object.values(enrollment).some(value => 
-          value.toString().toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      );
-      setFilteredEnrollments(results);
+  // Fetch students, courses, batches, and semesters data from API
+  const { data: students, error: studentError, isLoading: isLoadingStudents } = useQuery(
+    ['students'],
+    fetchStudents,
+    {
+      onSuccess: (data) => {
+        console.log('Successfully fetched students:', data);
+      },
+      onError: (error) => {
+        console.error('Error fetching students:', error);
+      }
     }
-  }, [enrollments, searchTerm]);
+  );
 
-  const addEnrollmentMutation = useMutation(addEnrollment, {
-    onSuccess: () => {
-      queryClient.invalidateQueries(['enrollments']);
+  const { data: courses, error: courseError, isLoading: isLoadingCourses } = useQuery(
+    ['courses'],
+    fetchCourses,
+    {
+      onSuccess: (data) => {
+        console.log('Successfully fetched courses:', data);
+      },
+      onError: (error) => {
+        console.error('Error fetching courses:', error);
+      }
+    }
+  );
+
+  const { data: batches, error: batchError, isLoading: isLoadingBatches } = useQuery(
+    ['batches'],
+    fetchBatches,
+    {
+      onSuccess: (data) => {
+        console.log('Successfully fetched batches:', data);
+      },
+      onError: (error) => {
+        console.error('Error fetching batches:', error);
+      }
+    }
+  );
+
+  const { data: semesters, error: semesterError, isLoading: isLoadingSemesters } = useQuery(
+    ['semesters'],
+    fetchSemesters,
+    {
+      onSuccess: (data) => {
+        console.log('Successfully fetched semesters:', data);
+      },
+      onError: (error) => {
+        console.error('Error fetching semesters:', error);
+      }
+    }
+  );
+
+  // Add, update, delete mutations for students
+  const addMutation = useMutation(addStudent, {
+    onSuccess: (data) => {
+      queryClient.invalidateQueries(['students']);
+      toast({ title: 'Student Created', description: data.message });
     },
+    onError: (data) => {
+      toast({ title: 'Error', description: data.message, variant: 'destructive' });
+    }
   });
 
-  const updateEnrollmentMutation = useMutation(updateEnrollment, {
-    onSuccess: () => {
-      queryClient.invalidateQueries(['enrollments']);
+  const updateMutation = useMutation(updateStudent, {
+    onSuccess: (data) => {
+      queryClient.invalidateQueries(['students']);
+      toast({ title: 'Student Updated', description: data.message });
     },
+    onError: (data) => {
+      toast({ title: 'Error', description: data.message, variant: 'destructive' });
+    }
   });
 
-  const deleteEnrollmentMutation = useMutation(deleteEnrollment, {
-    onSuccess: () => {
-      queryClient.invalidateQueries(['enrollments']);
+  const deleteMutation = useMutation(deleteStudent, {
+    onSuccess: (data) => {
+      queryClient.invalidateQueries(['students']);
+      toast({ title: 'Student Deleted', description: data.message });
     },
+    onError: (data) => {
+      toast({ title: 'Error', description: data.message, variant: 'destructive' });
+    }
   });
 
-  const handleCreateEnrollment = (newEnrollment) => {
-    addEnrollmentMutation.mutate(newEnrollment);
+  const [editingStudent, setEditingStudent] = useState(null);
+
+  const handleCreateStudent = (newStudent) => {
+    addMutation.mutate(newStudent);
   };
 
-  const handleEditEnrollment = (editedEnrollment) => {
-    updateEnrollmentMutation.mutate(editedEnrollment);
-    setEditingEnrollment(null);
+  const handleEditStudent = (editedStudent) => {
+    updateMutation.mutate(editedStudent);
+    setEditingStudent(null);
   };
 
-  const handleDeleteEnrollment = (enrollmentId) => {
-    deleteEnrollmentMutation.mutate(enrollmentId);
+  const handleDeleteStudent = (studentId) => {
+    deleteMutation.mutate(studentId);
   };
 
-  if (isLoadingEnrollments || isLoadingStudents || isLoadingBatches || isLoadingCourses || isLoadingSemesters) {
-    return <div>Loading...</div>;
+  // Handling loading and error states
+  if (isLoadingStudents || isLoadingCourses || isLoadingBatches || isLoadingSemesters) {
+    return <div>Loading...</div>; // You might want to add a spinner here
   }
 
-  if (enrollmentsError || studentsError || batchesError || coursesError || semestersError) {
-    return <div>Error: {enrollmentsError?.message || studentsError?.message || batchesError?.message || coursesError?.message || semestersError?.message}</div>;
+  if (studentError || courseError || batchError || semesterError) {
+    return <div>Error loading data</div>;
   }
 
   return (
     <div className="container mx-auto py-10">
+      <Toaster />
       <Tabs defaultValue="create" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="create">Enroll Student</TabsTrigger>
-          <TabsTrigger value="view">View Enrollments</TabsTrigger>
+          <TabsTrigger value="view">View Students</TabsTrigger>
         </TabsList>
         <TabsContent value="create">
-          <CreateEnrollmentForm onCreateEnrollment={handleCreateEnrollment} />
+          <CreateStudentForm 
+            courses={courses} 
+            batches={batches} 
+            semesters={semesters} 
+            onCreateStudent={handleCreateStudent} 
+          />
         </TabsContent>
         <TabsContent value="view">
-          <div className="mb-4">
-            <div className="relative">
-              <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search enrollments..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8"
-              />
-            </div>
-          </div>
-          <EnrollmentList 
-            enrollments={filteredEnrollments} 
-            onEdit={setEditingEnrollment} 
-            onDelete={handleDeleteEnrollment} 
+          <StudentList 
+            students={students} 
+            onEdit={setEditingStudent} 
+            onDelete={handleDeleteStudent} 
           />
         </TabsContent>
       </Tabs>
 
-      <Dialog open={editingEnrollment !== null} onOpenChange={() => setEditingEnrollment(null)}>
+      <Dialog open={editingStudent !== null} onOpenChange={() => setEditingStudent(null)}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Edit Enrollment</DialogTitle>
+            <DialogTitle>Edit Student</DialogTitle>
             <DialogDescription>
-              Make changes to the student enrollment here. Click save when you're done.
+              Make changes to the student here. Click save when you're done.
             </DialogDescription>
           </DialogHeader>
-          {editingEnrollment && (
-            <EditEnrollmentForm enrollment={editingEnrollment} onSave={handleEditEnrollment} />
+          {editingStudent && (
+            <EditStudentForm 
+              student={editingStudent} 
+              courses={courses} 
+              batches={batches} 
+              semesters={semesters} 
+              onSave={handleEditStudent} 
+            />
           )}
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }
 
-function CreateEnrollmentForm({ onCreateEnrollment }) {
-  const [student, setStudent] = useState('')
-  const [batch, setBatch] = useState('')
-  const [course, setCourse] = useState('')
-  const [semester, setSemester] = useState('')
-  const [open, setOpen] = useState(false)
+function CreateStudentForm({ courses, batches, semesters, onCreateStudent }) {
+  const [name, setName] = useState('');
+  const [batch, setBatch] = useState('');
+  const [course, setCourse] = useState('');
+  const [semester, setSemester] = useState('');
 
   const handleSubmit = (e) => {
-    e.preventDefault()
-    onCreateEnrollment({ student, batch, course, semester })
-    setStudent('')
-    setBatch('')
-    setCourse('')
-    setSemester('')
-  }
+    e.preventDefault();
+    onCreateStudent({ name, batch, course, semester });
+    setName('');
+    setBatch('');
+    setCourse('');
+    setSemester('');
+  };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Enroll Student</CardTitle>
-        <CardDescription>Enter the details to enroll a student</CardDescription>
+        <CardTitle>Enroll New Student</CardTitle>
+        <CardDescription>Enter the details for the new student</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="student">Student</Label>
-            <Popover open={open} onOpenChange={setOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={open}
-                  className="w-full justify-between"
-                >
-                  {student ? student : "Select student..."}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[200px] p-0">
-                <Command>
-                  <CommandInput placeholder="Search student..." />
-                  <CommandEmpty>No student found.</CommandEmpty>
-                  <CommandGroup>
-                    {students.map((s) => (
-                      <CommandItem
-                        key={s}
-                        onSelect={(currentValue) => {
-                          setStudent(currentValue === student ? "" : currentValue)
-                          setOpen(false)
-                        }}
-                      >
-                        {s}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </Command>
-              </PopoverContent>
-            </Popover>
+            <Label htmlFor="name">Student Name</Label>
+            <Input 
+              id="name" 
+              value={name} 
+              onChange={(e) => setName(e.target.value)} 
+              required 
+            />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="batch">Batch</Label>
+            <Label htmlFor="edit-batch">Batch</Label>
             <Select value={batch} onValueChange={setBatch}>
               <SelectTrigger>
                 <SelectValue placeholder="Select batch" />
               </SelectTrigger>
               <SelectContent>
                 {batches.map((b) => (
-                  <SelectItem key={b} value={b}>{b}</SelectItem>
+                  <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="course">Course</Label>
+            <Label htmlFor="edit-course">Course</Label>
             <Select value={course} onValueChange={setCourse}>
               <SelectTrigger>
                 <SelectValue placeholder="Select course" />
               </SelectTrigger>
               <SelectContent>
                 {courses.map((c) => (
-                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="semester">Semester</Label>
+            <Label htmlFor="edit-semester">Semester</Label>
             <Select value={semester} onValueChange={setSemester}>
               <SelectTrigger>
                 <SelectValue placeholder="Select semester" />
               </SelectTrigger>
               <SelectContent>
                 {semesters.map((s) => (
-                  <SelectItem key={s} value={s}>{s}</SelectItem>
+                  <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -223,94 +284,30 @@ function CreateEnrollmentForm({ onCreateEnrollment }) {
         </form>
       </CardContent>
     </Card>
-  )
+  );
 }
 
-function EnrollmentList({ enrollments, onEdit, onDelete }) {
-  return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Student</TableHead>
-          <TableHead>Batch</TableHead>
-          <TableHead>Course</TableHead>
-          <TableHead>Semester</TableHead>
-          <TableHead>Actions</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {enrollments.map((enrollment) => (
-          <TableRow key={enrollment.id}>
-            <TableCell>{enrollment.student}</TableCell>
-            <TableCell>{enrollment.batch}</TableCell>
-            <TableCell>{enrollment.course}</TableCell>
-            <TableCell>{enrollment.semester}</TableCell>
-            <TableCell>
-              <div className="flex space-x-2">
-                <Button variant="outline" size="icon" onClick={() => onEdit(enrollment)}>
-                  <Edit className="h-4 w-4" />
-                  <span className="sr-only">Edit</span>
-                </Button>
-                <Button variant="outline" size="icon" onClick={() => onDelete(enrollment.id)}>
-                  <Trash className="h-4 w-4" />
-                  <span className="sr-only">Delete</span>
-                </Button>
-              </div>
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  )
-}
-
-function EditEnrollmentForm({ enrollment, onSave }) {
-  const [student, setStudent] = useState(enrollment.student)
-  const [batch, setBatch] = useState(enrollment.batch)
-  const [course, setCourse] = useState(enrollment.course)
-  const [semester, setSemester] = useState(enrollment.semester)
-  const [open, setOpen] = useState(false)
+function EditStudentForm({ student, courses, batches, semesters, onSave }) {
+  const [name, setName] = useState(student.name);
+  const [batch, setBatch] = useState(student.batchId);
+  const [course, setCourse] = useState(student.courseId);
+  const [semester, setSemester] = useState(student.semesterId);
 
   const handleSubmit = (e) => {
-    e.preventDefault()
-    onSave({ ...enrollment, student, batch, course, semester })
-  }
+    e.preventDefault();
+    onSave({ id: student.id, name, batch, course, semester });
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="edit-student">Student</Label>
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              role="combobox"
-              aria-expanded={open}
-              className="w-full justify-between"
-            >
-              {student ? student : "Select student..."}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-[200px] p-0">
-            <Command>
-              <CommandInput placeholder="Search student..." />
-              <CommandEmpty>No student found.</CommandEmpty>
-              <CommandGroup>
-                {students.map((s) => (
-                  <CommandItem
-                    key={s}
-                    onSelect={(currentValue) => {
-                      setStudent(currentValue === student ? "" : currentValue)
-                      setOpen(false)
-                    }}
-                  >
-                    {s}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </Command>
-          </PopoverContent>
-        </Popover>
+        <Label htmlFor="edit-name">Student Name</Label>
+        <Input 
+          id="edit-name" 
+          value={name} 
+          onChange={(e) => setName(e.target.value)} 
+          required 
+        />
       </div>
       <div className="space-y-2">
         <Label htmlFor="edit-batch">Batch</Label>
@@ -320,7 +317,7 @@ function EditEnrollmentForm({ enrollment, onSave }) {
           </SelectTrigger>
           <SelectContent>
             {batches.map((b) => (
-              <SelectItem key={b} value={b}>{b}</SelectItem>
+              <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -333,7 +330,7 @@ function EditEnrollmentForm({ enrollment, onSave }) {
           </SelectTrigger>
           <SelectContent>
             {courses.map((c) => (
-              <SelectItem key={c} value={c}>{c}</SelectItem>
+              <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -346,14 +343,28 @@ function EditEnrollmentForm({ enrollment, onSave }) {
           </SelectTrigger>
           <SelectContent>
             {semesters.map((s) => (
-              <SelectItem key={s} value={s}>{s}</SelectItem>
+              <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
-      <DialogFooter>
-        <Button type="submit">Save changes</Button>
-      </DialogFooter>
+      <Button type="submit" className="w-full">Save Changes</Button>
     </form>
-  )
+  );
+}
+
+function StudentList({ students, onEdit, onDelete }) {
+  return (
+    <div>
+      {students.map(student => (
+        <div key={student.id} className="flex justify-between items-center">
+          <div>{student.name}</div>
+          <div>
+            <Button onClick={() => onEdit(student)}><Edit /></Button>
+            <Button onClick={() => onDelete(student.id)}><Trash /></Button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 }
