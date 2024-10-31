@@ -36,7 +36,7 @@ import { Toaster } from '@/components/ui/toaster'
 
 export default function BatchPage() {
 
-  const queryClient = useQueryClient();
+  const queryClient = useQueryClient(); 
   const { toast } = useToast();
   // Fetch batches data from API
   const { data: batches, error, isLoading } = useQuery(
@@ -231,6 +231,8 @@ function BatchList({ batches, onEdit, onDelete }) {
     0: "Running",
     1: "Passout"
   };
+
+  const a = Number(data);
 
   if (!batches || batches.length === 0) {
     return <div>No batches available</div>;

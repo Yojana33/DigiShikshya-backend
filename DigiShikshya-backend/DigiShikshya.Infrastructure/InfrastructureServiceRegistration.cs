@@ -13,6 +13,7 @@ public static class InfrastructureServiceRegistration
         services.AddScoped<EmailService>();
         services.AddScoped<SubmissionService>();
         services.AddScoped<KeycloakService>();
+        services.AddScoped<KeycloakSettings>();
         services.AddSignalR();
         services.AddHttpClient<KeycloakService>(client =>
         {

@@ -21,11 +21,17 @@ if (string.IsNullOrEmpty(connectionString))
 
 // Service Registration
 builder.Services.AddControllers();
-builder.Services.AddScoped<IHttpContextAccessor>();
+
+// Remove incorrect registrations
+// builder.Services.AddScoped<IHttpContextAccessor>();
+// builder.Services.AddScoped<IHttpContextAccessor, HttpContextAccessor>();
+
+// Correctly register IHttpContextAccessor
+builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddInfrastructureServices(configuration);
 builder.Services.AddPersistenceServices(connectionString);
 builder.Services.AddApplicationServices();
-
 
 // Authentication Configuration (Keycloak)
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -89,15 +95,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-  // Uncomment when ready to add authorization policies
-
-// builder.Services.AddAuthorization(options =>
-// {
-//     options.AddPolicy("AdminPolicy", policy => policy.RequireRole("Admin"));
-//     options.AddPolicy("TeacherPolicy", policy => policy.RequireRole("Teacher"));
-//     options.AddPolicy("StudentPolicy", policy => policy.RequireRole("Student"));
-// });
-
 // CORS Configuration
 builder.Services.AddCors(options =>
 {
@@ -159,13 +156,9 @@ else
 // Application Setup
 var app = builder.Build();
 
-
-
 // Configure HttpContextHelper
 var httpContextAccessor = app.Services.GetRequiredService<IHttpContextAccessor>();
 HttpContextHelper.Configure(httpContextAccessor);
-
-
 
 app.UseCors("AllowFrontend");
 app.UseSwagger();

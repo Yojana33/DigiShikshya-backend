@@ -36,9 +36,9 @@ public class AuthController : ControllerBase
             await _mediator.Send(user);
 
             // Set the tokens as HttpOnly cookies
-            SetTokenCookies(token.Item1, token.Item2);
+            SetTokenCookies(token.AccessToken, token.RefreshToken);
 
-            return Ok(new { Info = userData, AccessToken = token.Item1,RefreshToken= token.Item2 }); // Return user info without tokens if using cookies
+            return Ok(new { Info = userData, token.AccessToken, token.RefreshToken }); // Return user info without tokens if using cookies
         }
         catch (Exception ex)
         {
@@ -80,7 +80,7 @@ public class AuthController : ControllerBase
             }
 
             var token = await _authService.GetNewAccessByRefreshTokenAsync(refreshToken!);
-            if (token.Item1 == null || token.Item2 == null)
+            if (token.AccessToken == null || token.RefreshToken == null)
             {
                 // Clear cookies if the refresh token is invalid
                 Response.Cookies.Delete("AccessToken");
@@ -101,6 +101,30 @@ public class AuthController : ControllerBase
             _logger.LogError(ex, "Error during token refresh.");
             return StatusCode(500, "An error occurred while refreshing the token.");
         }
+    }
+
+    [HttpGet("user/{role}")]
+    public async Task<IActionResult> GetUser(string role)
+    {
+        var accessToken = Request.Cookies["AccessToken"];
+        if (string.IsNullOrEmpty(accessToken))
+        {
+            return Unauthorized("Access token is missing.");
+        }
+
+        var userData = JwtTokenHelper.GetTokenInfo(accessToken);
+        if (userData == null)
+        {
+            return Unauthorized("Invalid access token.");
+        }
+
+        var user = await _authService.GetUsersByRoleAsync(role);
+        if (user == null)
+        {
+            return NotFound("User not found.");
+        }
+
+        return Ok(user);
     }
 
     // Helper method to set access and refresh tokens in HttpOnly cookies
