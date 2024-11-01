@@ -24,7 +24,7 @@ public class SubmissionService
         // Build the Aho-Corasick trie with all submissions
         foreach (var submission in validSubmissions)
         {
-            var content = submission.SubmittedFile.ToString();
+            var content = submission.SubmittedFile?.ToString();
             if (!string.IsNullOrWhiteSpace(content))
             {
                 ahoCorasick.AddPattern(content);
