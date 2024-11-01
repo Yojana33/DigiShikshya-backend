@@ -1,14 +1,15 @@
 using System.Net;
 using System.Net.Mail;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 
 
-    public class EmailService
+public class EmailService(IConfiguration configuration)
     {
-        private readonly string _smtpServer = "smtp.gmail.com";
-        private readonly int _smtpPort = 587;
-        private readonly string _smtpUser = "your-email@gmail.com";
-        private readonly string _smtpPass = "your-password";
+        private readonly string _smtpServer = configuration["SMTP:Host"]!;
+        private readonly int _smtpPort = int.Parse(configuration["SMTP:Port"]!);
+        private readonly string _smtpUser = configuration["SMTP:Username"]!;
+        private readonly string _smtpPass = configuration["SMTP:Password"]!;
 
         public async Task SendEmailAsync(string to, string subject, string body)
         {
