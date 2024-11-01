@@ -1,60 +1,103 @@
 using MediatR;
 
-public class CheckPlagiarismCommandHandler(KeycloakService keyCloakService,  EmailService emailService, ISubmissionRepository submissionRepository) : IRequestHandler<CheckPlagiarismCommand, CheckPlagiarismResponse>
+public class CheckPlagiarismCommandHandler : IRequestHandler<CheckPlagiarismCommand, CheckPlagiarismResponse>
 {
+    private readonly KeycloakService _keycloakService;
+    private readonly EmailService _emailService;
+    private readonly ISubmissionRepository _submissionRepository;
+
+    public CheckPlagiarismCommandHandler(
+        KeycloakService keycloakService,
+        EmailService emailService,
+        ISubmissionRepository submissionRepository)
+    {
+        _keycloakService = keycloakService;
+        _emailService = emailService;
+        _submissionRepository = submissionRepository;
+    }
 
     public async Task<CheckPlagiarismResponse> Handle(CheckPlagiarismCommand request, CancellationToken cancellationToken)
     {
-        // Fetch all submissions for the given assignment
-        var submissionList = await submissionRepository.GetAllSubmissions(
-            new SubmissionListQuery { AssignmentId = request.AssignmentId });
-
-        // Convert submitted files from Base64 string to byte arrays
-        var submissions = submissionList?.Items?.Select(submission => new Submission
+        var submissions = await GetSubmissionsAsync(request.AssignmentId);
+        if (submissions.Count == 0)
         {
-            Id = submission.Id,
-            AssignmentId = submission.AssignmentId,
-            SubmittedFile = Convert.FromBase64String(submission.SubmittedFile!),
-            StudentId = submission.StudentId
-        }).ToList();
+            return new CheckPlagiarismResponse { Message = "No submissions found", IsPlagiarism = false };
+        }
 
-        // Perform the plagiarism check
-        var plagiarismResults = await SubmissionService.CheckForSimilaritiesAsync(submissions!);
-
-        // Extract all unique student IDs involved in plagiarism
-        var studentIds = plagiarismResults
-            .SelectMany(x => new[] { x.Item1, x.Item2 })
-            .Distinct()
-            .ToList();
-
-        // Fetch all student details concurrently to avoid multiple sequential requests
-        var studentTasks = studentIds.Select(id => keyCloakService.GetUserByIdAsync(id));
-        var studentDetails = await Task.WhenAll(studentTasks);
-
-        // Prepare email messages
-        var emailTasks = plagiarismResults.Select(async result =>
+        var plagiarismResults = await SubmissionService.CheckForSimilaritiesAsync(submissions);
+        if (!plagiarismResults.Any())
         {
-            var student1 = studentDetails.FirstOrDefault(s => s.Id == result.Item1);
-            var student2 = studentDetails.FirstOrDefault(s => s.Id == result.Item2);
+            return new CheckPlagiarismResponse { Message = "No plagiarism detected", IsPlagiarism = false };
+        }
 
-            if (student1 != null && student2 != null)
-            {
-                var message = "You have been accused of plagiarism. Please review the submission.";
-                var emailTask1 = emailService.SendEmailAsync(student1.Email, "Plagiarism Alert", message);
-                var emailTask2 = emailService.SendEmailAsync(student2.Email, "Plagiarism Alert", message);
-
-                await Task.WhenAll(emailTask1, emailTask2); // Send both emails concurrently
-            }
-        });
-
-        // Wait for all email sending tasks to complete
-        await Task.WhenAll(emailTasks);
+        await NotifyStudentsAsync(plagiarismResults);
 
         return new CheckPlagiarismResponse
         {
-            Message = "Plagiarism check completed",
-            IsPlagiarism = plagiarismResults.Any()
+            Message = "Plagiarism detected and notifications sent",
+            IsPlagiarism = true
         };
     }
 
+    private async Task<List<Submission>> GetSubmissionsAsync(Guid assignmentId)
+    {
+        var submissionList = await _submissionRepository.GetAllSubmissions(
+            new SubmissionListQuery { AssignmentId = assignmentId });
+
+        return submissionList?.Items?
+            .Select(s => new Submission
+            {
+                Id = s.Id,
+                AssignmentId = s.AssignmentId,
+                SubmittedFile = Convert.FromBase64String(s.SubmittedFile ?? string.Empty),
+                StudentId = s.StudentId
+            })
+            .ToList() ?? new List<Submission>();
+    }
+
+    private async Task NotifyStudentsAsync(IEnumerable<Tuple<Guid, Guid>> plagiarismResults)
+    {
+        var studentIds = plagiarismResults
+            .SelectMany(x => new[] { x.Item1, x.Item2 })
+            .Distinct();
+
+        var studentDetails = await GetStudentDetailsAsync(studentIds);
+        await SendPlagiarismNotificationsAsync(plagiarismResults, studentDetails);
+    }
+
+    private async Task<Dictionary<Guid, User>> GetStudentDetailsAsync(IEnumerable<Guid> studentIds)
+    {
+        var tasks = studentIds.Select(id => _keycloakService.GetUserByIdAsync(id));
+        var results = await Task.WhenAll(tasks);
+        return results.ToDictionary(user => user.Id);
+    }
+
+    private async Task SendPlagiarismNotificationsAsync(
+        IEnumerable<Tuple<Guid, Guid>> plagiarismResults,
+        Dictionary<Guid, User> studentDetails)
+    {
+        const string subject = "Plagiarism Alert";
+        const string message = "You have been accused of plagiarism. Please review the submission.";
+
+        var emailTasks = plagiarismResults
+            .SelectMany(result => new[]
+            {
+                SendEmailIfUserExists(studentDetails, result.Item1, subject, message),
+                SendEmailIfUserExists(studentDetails, result.Item2, subject, message)
+            });
+
+        await Task.WhenAll(emailTasks);
+    }
+
+    private async Task SendEmailIfUserExists(
+        Dictionary<Guid, User> studentDetails,
+        Guid studentId,
+        string subject,
+        string message)
+    {
+        if (studentDetails.TryGetValue(studentId, out var student))
+        {
+            await _emailService.SendEmailAsync(student.Email, subject, message);
+        }
+    }
 }
