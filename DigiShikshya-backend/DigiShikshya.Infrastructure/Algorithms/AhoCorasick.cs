@@ -1,18 +1,11 @@
 
-    public class AhoCorasick
-    {
-        private readonly Node _root;
-        private readonly bool _ignoreCase;
-        private readonly Dictionary<string, List<string>> _cache;
+    public class AhoCorasick(bool ignoreCase = false)
+{
+        private readonly Node _root = new Node();
+        private readonly bool _ignoreCase = ignoreCase;
+        private readonly Dictionary<string, List<string>> _cache = [];
 
-        public AhoCorasick(bool ignoreCase = false)
-        {
-            _root = new Node();
-            _ignoreCase = ignoreCase;
-            _cache = new Dictionary<string, List<string>>();
-        }
-
-        private sealed class Node
+    private sealed class Node
         {
             public readonly Dictionary<char, Node> Children = new(4); // Initial capacity optimization
             public Node? Failure;
@@ -70,7 +63,7 @@
         public List<string> Search(string text)
         {
             if (string.IsNullOrEmpty(text))
-                return new List<string>();
+                return [];
 
             if (_cache.TryGetValue(text, out var cachedResult))
                 return new List<string>(cachedResult);
