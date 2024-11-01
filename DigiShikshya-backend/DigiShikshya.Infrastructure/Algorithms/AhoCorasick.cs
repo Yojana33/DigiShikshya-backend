@@ -1,28 +1,40 @@
-using System.Collections.Generic;
 
-namespace DigiShikshya.Infrastructure.Algorithms
-{
     public class AhoCorasick
     {
-        private class Node
+        private readonly Node _root;
+        private readonly bool _ignoreCase;
+        private readonly Dictionary<string, List<string>> _cache;
+
+        public AhoCorasick(bool ignoreCase = false)
         {
-            public Dictionary<char, Node> Children { get; } = new Dictionary<char, Node>();
-            public Node Failure { get; set; }
-            public List<string> Outputs { get; } = new List<string>();
+            _root = new Node();
+            _ignoreCase = ignoreCase;
+            _cache = new Dictionary<string, List<string>>();
         }
 
-        private readonly Node _root = new Node();
+        private sealed class Node
+        {
+            public readonly Dictionary<char, Node> Children = new(4); // Initial capacity optimization
+            public Node? Failure;
+            public readonly HashSet<string> Outputs = new();
+        }
 
         public void AddPattern(string pattern)
         {
+            if (string.IsNullOrEmpty(pattern))
+                throw new ArgumentException("Pattern cannot be null or empty", nameof(pattern));
+
+            var processedPattern = _ignoreCase ? pattern.ToLowerInvariant() : pattern;
             var node = _root;
-            foreach (var ch in pattern)
+
+            foreach (var ch in processedPattern)
             {
-                if (!node.Children.ContainsKey(ch))
+                if (!node.Children.TryGetValue(ch, out var nextNode))
                 {
-                    node.Children[ch] = new Node();
+                    nextNode = new Node();
+                    node.Children[ch] = nextNode;
                 }
-                node = node.Children[ch];
+                node = nextNode;
             }
             node.Outputs.Add(pattern);
         }
@@ -30,58 +42,82 @@ namespace DigiShikshya.Infrastructure.Algorithms
         public void Build()
         {
             var queue = new Queue<Node>();
-            foreach (var node in _root.Children.Values)
+            
+            foreach (var (_, child) in _root.Children)
             {
-                node.Failure = _root;
-                queue.Enqueue(node);
+                child.Failure = _root;
+                queue.Enqueue(child);
             }
 
-            while (queue.Count > 0)
+            while (queue.TryDequeue(out var currentNode))
             {
-                var currentNode = queue.Dequeue();
-                foreach (var kvp in currentNode.Children)
+                foreach (var (ch, childNode) in currentNode.Children)
                 {
-                    var childNode = kvp.Value;
                     var failureNode = currentNode.Failure;
-                    while (failureNode != null && !failureNode.Children.ContainsKey(kvp.Key))
-                    {
+                    
+                    while (failureNode != null && !failureNode.Children.ContainsKey(ch))
                         failureNode = failureNode.Failure;
-                    }
-                    if (failureNode == null)
-                    {
-                        childNode.Failure = _root;
-                    }
-                    else
-                    {
-                        childNode.Failure = failureNode.Children[kvp.Key];
-                        childNode.Outputs.AddRange(childNode.Failure.Outputs);
-                    }
+                    
+                    childNode.Failure = failureNode?.Children.GetValueOrDefault(ch) ?? _root;
+                    foreach (var output in childNode.Failure.Outputs)
+                        childNode.Outputs.Add(output);
+                    
                     queue.Enqueue(childNode);
                 }
             }
         }
 
-        public  List<string> Search(string text)
+        public List<string> Search(string text)
         {
-            var node = _root;
-            var results = new List<string>();
+            if (string.IsNullOrEmpty(text))
+                return new List<string>();
 
-            foreach (var ch in text)
+            if (_cache.TryGetValue(text, out var cachedResult))
+                return new List<string>(cachedResult);
+
+            var processedText = _ignoreCase ? text.ToLowerInvariant() : text;
+            var results = new HashSet<string>();
+            var node = _root;
+
+            foreach (var ch in processedText)
             {
                 while (node != null && !node.Children.ContainsKey(ch))
-                {
                     node = node.Failure;
-                }
-                if (node == null)
-                {
-                    node = _root;
-                    continue;
-                }
-                node = node.Children[ch];
-                results.AddRange(node.Outputs);
+
+                node = node?.Children.GetValueOrDefault(ch) ?? _root;
+                foreach (var output in node.Outputs)
+                    results.Add(output);
             }
 
-            return results;
+            var resultList = new List<string>(results);
+            _cache[text] = resultList;
+            return resultList;
         }
+
+        public async Task<List<string>> SearchParallelAsync(string text, int threshold = 10000)
+        {
+            if (text.Length < threshold)
+                return Search(text);
+
+            var chunkSize = text.Length / Environment.ProcessorCount;
+            var tasks = new List<Task<HashSet<string>>>();
+            var results = new HashSet<string>();
+
+            for (var i = 0; i < text.Length; i += chunkSize)
+            {
+                var start = i;
+                var length = Math.Min(chunkSize + 100, text.Length - start); // Overlap by 100 chars
+                var chunk = text.Substring(start, length);
+                
+                tasks.Add(Task.Run(() => new HashSet<string>(Search(chunk))));
+            }
+
+            var taskResults = await Task.WhenAll(tasks);
+            foreach (var result in taskResults)
+                results.UnionWith(result);
+
+            return new List<string>(results);
+        }
+
+        public void ClearCache() => _cache.Clear();
     }
-}
