@@ -45,7 +45,7 @@ public class AddNewSubmissionHandler(ISubmissionRepository submissionRepository,
             {
                 Status = "Bad Request",
                 Message = "Submission cannot be made after the due date.",
-                Errors = new List<string> { "The due date for this assignment has passed." }
+                Errors = ["The due date for this assignment has passed."]
             };
         }
 

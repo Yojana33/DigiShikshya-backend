@@ -1,7 +1,8 @@
 {
     "explorer.autoRevealExclude": {
         "**/bin": true,
-        "**/obj": true
+        "**/obj": true,
+        "*/.idea": true,
     },
     "files.exclude": {
         "**/bin/": true,
