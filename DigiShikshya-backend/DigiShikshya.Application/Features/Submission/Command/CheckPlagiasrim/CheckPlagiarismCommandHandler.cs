@@ -1,13 +1,14 @@
 using MediatR;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
 
 public class CheckPlagiarismCommandHandler : IRequestHandler<CheckPlagiarismCommand, CheckPlagiarismResponse>
 {
-    private readonly KeycloakService _keycloakService;
+    private readonly IKeycloakService _keycloakService;
     private readonly EmailService _emailService;
     private readonly ISubmissionRepository _submissionRepository;
 
     public CheckPlagiarismCommandHandler(
-        KeycloakService keycloakService,
+        IKeycloakService keycloakService,
         EmailService emailService,
         ISubmissionRepository submissionRepository)
     {

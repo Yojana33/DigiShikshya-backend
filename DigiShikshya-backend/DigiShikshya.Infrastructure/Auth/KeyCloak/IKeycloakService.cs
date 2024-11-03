@@ -7,5 +7,8 @@ public interface IKeycloakService
     Task<List<User>> GetUsersByRoleAsync(string roleName, CancellationToken cancellationToken = default);
     Task<(string AccessToken, string RefreshToken)> GetNewAccessByRefreshTokenAsync(string refreshToken, CancellationToken cancellationToken = default);
     Task<User> GetUserByIdAsync(Guid id, CancellationToken cancellationToken = default);
+
+   
+    
     
 }

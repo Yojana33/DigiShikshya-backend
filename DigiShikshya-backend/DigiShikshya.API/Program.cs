@@ -55,45 +55,36 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             OnAuthenticationFailed = context =>
             {
-                Console.WriteLine("Authentication failed: " + context.Exception.Message);
+                Console.WriteLine($"Authentication failed: {context.Exception.Message}");
                 return Task.CompletedTask;
             },
             OnTokenValidated = context =>
             {
-                if (context.Principal!.Identity is ClaimsIdentity claimsIdentity)
+                if (context.Principal?.Identity is ClaimsIdentity claimsIdentity)
                 {
-                    var realmAccess = context.Principal.FindFirst("realm_access")?.Value;
-                    var resourceAccess = context.Principal.FindFirst("resource_access")?.Value;
-
-                    if (realmAccess != null)
+                    var accessTypes = new[] { "realm_access", "resource_access" };
+                    foreach (var accessType in accessTypes)
                     {
-                        var roles = System.Text.Json.JsonDocument.Parse(realmAccess)
-                            .RootElement.GetProperty("roles")
-                            .EnumerateArray()
-                            .Select(role => new Claim(ClaimTypes.Role, role.GetString()!));
-                        claimsIdentity.AddClaims(roles);
+                        var accessValue = context.Principal.FindFirst(accessType)?.Value;
+                        if (!string.IsNullOrEmpty(accessValue))
+                        {
+                            var roles = System.Text.Json.JsonDocument.Parse(accessValue)
+                                .RootElement.GetProperty("roles")
+                                .EnumerateArray()
+                                .Select(role => new Claim(ClaimTypes.Role, role.GetString()!));
+                            claimsIdentity.AddClaims(roles);
+                        }
                     }
 
-                    if (resourceAccess != null)
-                    {
-                        var resourceRoles = System.Text.Json.JsonDocument.Parse(resourceAccess)
-                            .RootElement
-                            .EnumerateObject()
-                            .SelectMany(prop => prop.Value.GetProperty("roles").EnumerateArray())
-                            .Select(role => new Claim(ClaimTypes.Role, role.GetString()!));
-                        claimsIdentity.AddClaims(resourceRoles);
-                    }
+                    context.HttpContext.Items["UserId"] = context.Principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                    context.HttpContext.Items["Name"] = context.Principal.FindFirst(ClaimTypes.Name)?.Value;
                 }
-
-                // Optional: Add user-specific data to HttpContext
-                var userId = context.Principal!.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                context.HttpContext.Items["UserId"] = userId;
-                context.HttpContext.Items["Name"] = context.Principal!.FindFirst(ClaimTypes.Name)?.Value;
 
                 return Task.CompletedTask;
             }
         };
-    });
+    }
+);
 
 // CORS Configuration
 builder.Services.AddCors(options =>

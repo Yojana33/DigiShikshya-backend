@@ -5,6 +5,8 @@ public class KeycloakSettings
     public string ClientSecret { get; set; } = string.Empty;
     public string GrantType { get; set; } = "password"; // Default to password grant
     public string Realm { get; set; } = string.Empty;
+
+    public string? Url { get; set; }
     
     public void Validate()
     {

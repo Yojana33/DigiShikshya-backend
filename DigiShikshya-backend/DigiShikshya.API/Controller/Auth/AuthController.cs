@@ -1,22 +1,22 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
+[ApiController]
+[Route("[controller]")]
 public class AuthController : ControllerBase
 {
-    private readonly KeycloakService _authService;
+    private readonly IKeycloakService _authService;
     private readonly ILogger<AuthController> _logger;
     private readonly IMediator _mediator;
 
-    public AuthController(KeycloakService authService,  ILogger<AuthController> logger , IMediator mediator)
+    public AuthController(IKeycloakService authService, ILogger<AuthController> logger, IMediator mediator)
     {
         _authService = authService;
         _logger = logger;
         _mediator = mediator;
     }
-  
 
     [HttpPost("login")]
     [AllowAnonymous]
@@ -26,19 +26,19 @@ public class AuthController : ControllerBase
         {
             var token = await _authService.AuthenticateAsync(loginRequest.Username!, loginRequest.Password!);
 
-            if (token.Item1 == null || token.Item2 == null)
+            if (string.IsNullOrEmpty(token.AccessToken) || string.IsNullOrEmpty(token.RefreshToken))
             {
                 return Unauthorized("Invalid credentials");
             }
 
-            var userData = JwtTokenHelper.GetTokenInfo(token.Item1);
+            var userData = JwtTokenHelper.GetTokenInfo(token.AccessToken);
             var user = new AddUserCommand { Id = userData.Id! };
             await _mediator.Send(user);
 
             // Set the tokens as HttpOnly cookies
             SetTokenCookies(token.AccessToken, token.RefreshToken);
 
-            return Ok(new { Info = userData, token.AccessToken, token.RefreshToken }); // Return user info without tokens if using cookies
+            return Ok(new { Info = userData });
         }
         catch (Exception ex)
         {
@@ -51,12 +51,12 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Logout()
     {
         var refreshToken = Request.Cookies["RefreshToken"];
-        if (refreshToken == null)
+        if (string.IsNullOrEmpty(refreshToken))
         {
             return BadRequest("No refresh token found.");
         }
 
-        var result = await _authService.LogoutAsync(refreshToken!);
+        var result = await _authService.LogoutAsync(refreshToken);
         if (!result)
         {
             return BadRequest("Logout failed.");
@@ -79,20 +79,16 @@ public class AuthController : ControllerBase
                 return Unauthorized("Refresh token is missing.");
             }
 
-            var token = await _authService.GetNewAccessByRefreshTokenAsync(refreshToken!);
-            if (token.AccessToken == null || token.RefreshToken == null)
+            var token = await _authService.GetNewAccessByRefreshTokenAsync(refreshToken);
+            if (string.IsNullOrEmpty(token.AccessToken) || string.IsNullOrEmpty(token.RefreshToken))
             {
-                // Clear cookies if the refresh token is invalid
                 Response.Cookies.Delete("AccessToken");
                 Response.Cookies.Delete("RefreshToken");
                 return Unauthorized("Invalid refresh token.");
             }
 
-            var userData = JwtTokenHelper.GetTokenInfo(token.Item1);
-            // await _authService.RegisterAsync(userData.Id!);
-
-            // Set the new tokens as HttpOnly cookies
-            SetTokenCookies(token.Item1, token.Item2);
+            var userData = JwtTokenHelper.GetTokenInfo(token.AccessToken);
+            SetTokenCookies(token.AccessToken, token.RefreshToken);
 
             return Ok(new { Info = userData });
         }
@@ -103,39 +99,40 @@ public class AuthController : ControllerBase
         }
     }
 
-    [HttpGet("user/{role}")]
-    public async Task<IActionResult> GetUser(string role)
+    [HttpGet("users/{role}")]
+    public async Task<IActionResult> GetUsersByRole(string role)
     {
-        var accessToken = Request.Cookies["AccessToken"];
-        if (string.IsNullOrEmpty(accessToken))
+        try
         {
-            return Unauthorized("Access token is missing.");
-        }
+            var accessToken = Request.Cookies["AccessToken"];
+            if (string.IsNullOrEmpty(accessToken))
+            {
+                return Unauthorized("Access token is missing.");
+            }
 
-        var userData = JwtTokenHelper.GetTokenInfo(accessToken);
-        if (userData == null)
+            var users = await _authService.GetUsersByRoleAsync(role);
+            if (users == null || !users.Any())
+            {
+                return NotFound("No users found for the specified role.");
+            }
+
+            return Ok(users);
+        }
+        catch (Exception ex)
         {
-            return Unauthorized("Invalid access token.");
+            _logger.LogError(ex, "Error fetching users by role.");
+            return StatusCode(500, "An error occurred while fetching users.");
         }
-
-        var user = await _authService.GetUsersByRoleAsync(role);
-        if (user == null)
-        {
-            return NotFound("User not found.");
-        }
-
-        return Ok(user);
     }
 
-    // Helper method to set access and refresh tokens in HttpOnly cookies
     private void SetTokenCookies(string accessToken, string refreshToken)
     {
         var accessTokenOptions = new CookieOptions
         {
             HttpOnly = true,
-            Secure = true, // Ensure this is true in production
+            Secure = true,
             SameSite = SameSiteMode.Strict,
-            Expires = DateTime.UtcNow.AddHours(1) // Adjust expiration to match token lifetime
+            Expires = DateTime.UtcNow.AddHours(1)
         };
 
         Response.Cookies.Append("AccessToken", accessToken, accessTokenOptions);
@@ -143,12 +140,31 @@ public class AuthController : ControllerBase
         var refreshTokenOptions = new CookieOptions
         {
             HttpOnly = true,
-            Secure = true, // Ensure this is true in production
+            Secure = true,
             SameSite = SameSiteMode.Strict,
-            Expires = DateTime.UtcNow.AddDays(7) // Longer expiration for refresh token
+            Expires = DateTime.UtcNow.AddDays(7)
         };
 
         Response.Cookies.Append("RefreshToken", refreshToken, refreshTokenOptions);
+    }
+    [HttpGet("user/{id}")]
+    public async Task<IActionResult> GetUserById(Guid id)
+    {
+        try
+        {
+            var user = await _authService.GetUserByIdAsync(id);
+            if (user == null)
+            {
+                return NotFound("User not found.");
+            }
+
+            return Ok(user);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching user by ID.");
+            return StatusCode(500, "An error occurred while fetching the user.");
+        }
     }
 }
 
