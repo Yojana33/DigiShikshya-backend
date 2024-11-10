@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/auth")]
 public class AuthController : ControllerBase
 {
     private readonly IKeycloakService _authService;
@@ -38,7 +38,7 @@ public class AuthController : ControllerBase
             // Set the tokens as HttpOnly cookies
             SetTokenCookies(token.AccessToken, token.RefreshToken);
 
-            return Ok(new { Info = userData });
+            return Ok(new { Info = userData , AcessToken = token.AccessToken, token.RefreshToken});
         }
         catch (Exception ex)
         {
