@@ -33,7 +33,7 @@ axiosInstance.interceptors.response.use(
         isRefreshing = true;
         
         try {
-          const { data } = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/refresh`, null, { withCredentials: true });
+          const { data } = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/refresh`, null, { withCredentials: true });
 
           isRefreshing = false;
           onRrefreshed();  // Notify all subscribers that the token has been refreshed

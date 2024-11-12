@@ -26,7 +26,7 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const response = await axiosInstance.post('/login', { username, password });
+      const response = await axiosInstance.post('/api/auth/login', { username, password });
       const { info } = response.data;
 
       // Store user info in localStorage
