@@ -4,24 +4,66 @@ import { useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Bell, Menu, FileText, Download, Eye } from 'lucide-react'
+import { Bell, FileText, Download, Eye } from 'lucide-react'
+import { useQuery, useMutation } from '@tanstack/react-query'
+import axiosInstance from '@/config/axiosconfig'
+import { useToast } from '@/hooks/use-toast'
+import { useRouter } from 'next/navigation'  // For getting route params
+import { Toaster } from '@/components/ui/toaster'
 
-// Mock data for subject notes - replace with actual data fetching
-const subjectNotes = {
-  id: 2,
-  name: "Science",
-  notes: [
-    { id: 1, title: "Newton's Laws", fileUrl: "/path/to/newtons-laws.pdf" },
-    { id: 2, title: "Thermodynamics", fileUrl: "/path/to/thermodynamics.pdf" },
-    { id: 3, title: "Periodic Table", fileUrl: "/path/to/periodic-table.pdf" },
-    { id: 4, title: "Chemical Bonding", fileUrl: "/path/to/chemical-bonding.pdf" },
-    { id: 5, title: "Cell Structure", fileUrl: "/path/to/cell-structure.pdf" },
-    { id: 6, title: "Genetics", fileUrl: "/path/to/genetics.pdf" },
-  ]
-}
+// API calls
+const fetchSubjectNotes = async (subjectId) => {
+  const response = await axiosInstance.get(`/api/v1/material/all`);
+  return response.data.notes;
+};
+
+const downloadNoteFile = async (fileUrl, title) => {
+  const response = await axiosInstance.get(fileUrl, { responseType: 'blob' });
+  return { fileUrl: response.data, title };
+};
 
 export default function NotesPage() {
+  const { toast } = useToast();
+  const router = useRouter();
+  const { subjectId } = router.query; // Get subjectId from URL parameters
+
+  if (!subjectId) {
+    return <div>Loading...</div>; // Wait for subjectId to be available
+  }
+
+  // Fetch subject notes using useQuery
+  const { data: subjectNotes, isLoading, error } = useQuery(
+    ['subjectNotes', subjectId],
+    () => fetchSubjectNotes(subjectId),
+    {
+      onError: () => {
+        toast({ title: 'Error fetching notes', description: 'Please try again later.', variant: 'destructive' });
+      },
+    }
+  );
+
+  // Handle file download using useMutation
+  const downloadMutation = useMutation({
+    mutationFn: downloadNoteFile,
+    onSuccess: ({ fileUrl, title }) => {
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(fileUrl);
+      link.download = `${title}.pdf`;
+      link.click();
+    },
+    onError: () => {
+      toast({ title: 'Error downloading file', description: 'Please try again later.', variant: 'destructive' });
+    },
+  });
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error loading notes</div>;
+  }
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       <header className="bg-white shadow-sm z-10 p-4">
@@ -58,14 +100,12 @@ export default function NotesPage() {
                         <Eye className="h-4 w-4 mr-2" />
                         Preview
                       </Button>
-                      <Button variant="ghost" size="sm" className="text-blue-600 hover:bg-blue-100" onClick={() => {
-                        const link = document.createElement('a');
-                        link.href = note.fileUrl;
-                        link.download = `${note.title}.pdf`;
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                      }}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-blue-600 hover:bg-blue-100"
+                        onClick={() => downloadMutation.mutate({ fileUrl: note.fileUrl, title: note.title })}
+                      >
                         <Download className="h-4 w-4 mr-2" />
                         Download
                       </Button>
@@ -77,6 +117,7 @@ export default function NotesPage() {
           </Card>
         </div>
       </main>
+      <Toaster />
     </div>
-  )
+  );
 }
