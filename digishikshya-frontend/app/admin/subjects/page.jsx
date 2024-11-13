@@ -48,7 +48,9 @@ const updateSubject = async (subject) => {
 
 // Deleting a subject
 const deleteSubject = async (subjectId) => {
-  const response = await axiosInstance.delete(`/api/v1/subject/delete`);
+  const response = await axiosInstance.delete(`/api/v1/subject/delete`, {
+    data: { id: subjectId }
+  });
   return response.data;
 };
 
@@ -145,6 +147,8 @@ export default function SubjectsPage() {
         <TabsContent value="view">
           <SubjectList 
             subjects={subjects} 
+            courses={courses}
+            semesters={semesters}
             onEdit={setEditingSubject} 
             onDelete={handleDeleteSubject} 
           />
@@ -198,7 +202,7 @@ function CreateSubjectForm({ onCreateSubject, batches, courses, semesters }) {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Subject Name</Label>
+            {/* <Label htmlFor="name">Subject Name</Label> */}
             <Input 
               id="name" 
               value={name} 
@@ -207,21 +211,22 @@ function CreateSubjectForm({ onCreateSubject, batches, courses, semesters }) {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="batch">Select Batch</Label>
+            {/* <Label htmlFor="batch">Select Batch</Label> */}
             <select
               id="batch"
               value={selectedBatch}
               onChange={(e) => setSelectedBatch(e.target.value)}
               required
             >
+              {console.log(batches)}
               <option value="">Select Batch</option>
-              {batches.map((batch) => (
-                <option key={batch.id} value={batch.id}>{batch.name}</option>
+              {batches?.map((batch) => (
+                <option key={batch.id} value={batch.id}>{batch.batchName}</option>
               ))}
             </select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="course">Select Course</Label>
+            {/* <Label htmlFor="course">Select Course</Label> */}
             <select
               id="course"
               value={selectedCourse}
@@ -235,7 +240,7 @@ function CreateSubjectForm({ onCreateSubject, batches, courses, semesters }) {
             </select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="semester">Select Semester</Label>
+            {/* <Label htmlFor="semester">Select Semester</Label> */}
             <select
               id="semester"
               value={selectedSemester}
@@ -243,7 +248,7 @@ function CreateSubjectForm({ onCreateSubject, batches, courses, semesters }) {
               required
             >
               <option value="">Select Semester</option>
-              {semesters.map((semester) => (
+              {semesters && semesters.map((semester) => (
                 <option key={semester.id} value={semester.id}>{semester.name}</option>
               ))}
             </select>
@@ -323,18 +328,37 @@ function EditSubjectForm({ subject, onSave, batches, courses, semesters }) {
 
 function SubjectList({ subjects, onEdit, onDelete }) {
   return (
-    <div>
+    <div className="space-y-4">
       {subjects.length === 0 ? (
         <div>No subjects available.</div>
       ) : (
-        subjects.map(subject => (
-          <div key={subject.id} className="flex justify-between items-center mb-2">
-            <div>{subject.name} (Batch: {subject.batchId}, Course: {subject.courseId}, Semester: {subject.semesterId})</div>
-            <div>
-              <Button onClick={() => onEdit(subject)}><Edit /></Button>
-              <Button onClick={() => onDelete(subject.id)}><Trash /></Button>
+        subjects.map((subject) => (
+          <Card key={subject.id} className="flex justify-between items-center p-4 border rounded-lg shadow-sm">
+            <CardTitle>
+              <p className="text-lg font-medium">{subject.name}</p>
+              <p className="text-lg text-black-500">
+                Subject: {subject.subjectName}
+              </p>
+            </CardTitle>
+            <CardContent>
+              <p className="text-md text-gray-500">
+                Course: {subject.courseName}
+              </p>
+              <p className="text-md text-gray-500">
+                Semester: {subject.semesterName}
+              </p>
+              </CardContent>
+            <div className="flex space-x-2">
+              <Button variant="outline" size="icon" onClick={() => onEdit(subject)}>
+                <Edit className="h-4 w-4" />
+                <span className="sr-only">Edit</span>
+              </Button>
+              <Button variant="outline" size="icon" onClick={() => onDelete(subject.id)}>
+                <Trash className="h-4 w-4" />
+                <span className="sr-only">Delete</span>
+              </Button>
             </div>
-          </div>
+          </Card>
         ))
       )}
     </div>

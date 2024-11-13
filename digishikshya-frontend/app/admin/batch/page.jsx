@@ -232,7 +232,7 @@ function BatchList({ batches, onEdit, onDelete }) {
     1: "Passout"
   };
 
-  const a = Number(data);
+  //const a = Number(data);
 
   if (!batches || batches.length === 0) {
     return <div>No batches available</div>;

@@ -20,6 +20,10 @@ const fetchSemesters = async () => {
   const response = await axiosInstance.get('/api/v1/semester/all');
   return response.data.items;
 };
+const fetchCourses = async () => {
+  const response = await axiosInstance.get('/api/v1/course/all');
+  return response.data.items;
+};
 
 const addSemester = async (semester) => {
   const response = await axiosInstance.post('/api/v1/semester/add', semester);
@@ -54,6 +58,8 @@ export default function SemesterPage() {
       }
     }
   );
+
+  const { data: courses } = useQuery(['courses'], fetchCourses);
 
   // Mutations for managing semesters
   const addMutation = useMutation(addSemester, {
@@ -118,7 +124,8 @@ export default function SemesterPage() {
           <TabsTrigger value="view">View Semesters</TabsTrigger>
         </TabsList>
         <TabsContent value="create">
-          <CreateSemesterForm onSave={handleCreateSemester} />
+          <CreateSemesterForm onSave={handleCreateSemester} courses={courses}  />
+          
         </TabsContent>
         <TabsContent value="view">
           <SemesterList 
@@ -138,7 +145,7 @@ export default function SemesterPage() {
             </DialogDescription>
           </DialogHeader>
           {editingSemester && (
-            <EditSemesterForm semester={editingSemester} onSave={handleEditSemester} />
+            <EditSemesterForm semester={editingSemester} onSave={handleEditSemester} courses={courses}  />
           )}
         </DialogContent>
       </Dialog>
@@ -146,19 +153,19 @@ export default function SemesterPage() {
   );
 }
 
-function CreateSemesterForm({ onSave }) {
+function CreateSemesterForm({ onSave, courses }) {
   const [semesterName, setSemesterName] = useState('');
-  const [description, setDescription] = useState('');
-  const [courseId, setCourseId] = useState('');
+  // const [description, setDescription] = useState('');
+  const [courseName, setCourseName] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave({ semesterName, description, courseId, startDate, endDate });
+    onSave({ semesterName, description, courseName, startDate, endDate });
     setSemesterName('');
     setDescription('');
-    setCourseId('');
+    setCourseName('');
     setStartDate('');
     setEndDate('');
   };
@@ -182,13 +189,18 @@ function CreateSemesterForm({ onSave }) {
           </div>
           <div className="space-y-2">
             <Label htmlFor="course">Course</Label>
-            <Select value={courseId} onValueChange={setCourseId} required>
+            <Select value={courseName} onValueChange={setCourseName} required>
               <SelectTrigger>
                 <SelectValue placeholder="Select course" />
               </SelectTrigger>
-              <SelectContent>
-                {/* Assume courses data is fetched and passed down as a prop */}
-              </SelectContent>
+            <SelectContent>
+              {courses && courses.map((course) => (
+                <SelectItem key={course.id} value={course.name}>
+                  {course.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+
             </Select>
           </div>
           <div className="space-y-2">
@@ -199,7 +211,7 @@ function CreateSemesterForm({ onSave }) {
             <Label htmlFor="endDate">End Date</Label>
             <Input type="date" id="endDate" value={endDate} onChange={(e) => setEndDate(e.target.value)} required />
           </div>
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <Label htmlFor="description">Semester Description</Label>
             <Textarea 
               id="description" 
@@ -207,7 +219,7 @@ function CreateSemesterForm({ onSave }) {
               onChange={(e) => setDescription(e.target.value)} 
               required 
             />
-          </div>
+          </div> */}
           <Button type="submit" className="w-full">Create Semester</Button>
         </form>
       </CardContent>
@@ -215,16 +227,16 @@ function CreateSemesterForm({ onSave }) {
   );
 }
 
-function EditSemesterForm({ semester, onSave }) {
+function EditSemesterForm({ semester, onSave, courses }) {
   const [semesterName, setSemesterName] = useState(semester.semesterName);
-  const [description, setDescription] = useState(semester.description);
-  const [courseId, setCourseId] = useState(semester.courseId);
+  // const [description, setDescription] = useState(semester.description);
+  const [courseName, setCourseName] = useState(semester.courseName);
   const [startDate, setStartDate] = useState(semester.startDate);
   const [endDate, setEndDate] = useState(semester.endDate);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave({ id: semester.id, semesterName, description, courseId, startDate, endDate });
+    onSave({ id: semester.id, semesterName, courseName, startDate, endDate });
   };
 
   return (
@@ -246,13 +258,16 @@ function EditSemesterForm({ semester, onSave }) {
           </div>
           <div className="space-y-2">
             <Label htmlFor="course">Course</Label>
-            <Select value={courseId} onValueChange={setCourseId} required>
+            <Select value={courseName} onValueChange={setCourseName} required>
               <SelectTrigger>
                 <SelectValue placeholder="Select course" />
               </SelectTrigger>
-              <SelectContent>
-                {/* Assume courses data is fetched and passed down as a prop */}
-              </SelectContent>
+                <SelectContent>
+          {courses.map((course) => (
+            <option key={course.id} value={course.id}>{course.name}</option>
+          ))}
+  </SelectContent>
+
             </Select>
           </div>
           <div className="space-y-2">
@@ -263,7 +278,7 @@ function EditSemesterForm({ semester, onSave }) {
             <Label htmlFor="endDate">End Date</Label>
             <Input type="date" id="endDate" value={endDate} onChange={(e) => setEndDate(e.target.value)} required />
           </div>
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <Label htmlFor="description">Semester Description</Label>
             <Textarea 
               id="description" 
@@ -271,7 +286,7 @@ function EditSemesterForm({ semester, onSave }) {
               onChange={(e) => setDescription(e.target.value)} 
               required 
             />
-          </div>
+          </div> */}
           <Button type="submit" className="w-full">Save Changes</Button>
         </form>
       </CardContent>
@@ -305,8 +320,8 @@ function SemesterList({ semesters, onEdit, onDelete }) {
             </div>
           </CardHeader>
           <CardContent>
-            <p>{semester.description}</p>
-            <p>Course ID: {semester.courseId}</p>
+            {/* <p>{semester.description}</p> */}
+            <p>Course Name: {semester.courseName}</p>
             <p>Start Date: {new Date(semester.startDate).toLocaleDateString()}</p>
             <p>End Date: {new Date(semester.endDate).toLocaleDateString()}</p>
           </CardContent>

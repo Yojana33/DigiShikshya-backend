@@ -9,34 +9,77 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Bell, Menu, FileText, Upload, CheckCircle, XCircle } from 'lucide-react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import axiosInstance from '@/config/axiosconfig'
+import { useToast } from '@/hooks/use-toast'
+import { Toaster } from '@/components/ui/toaster'
 
-// Mock data - replace with actual data fetching
-const assignmentsData = {
-  newAssignments: [
-    { id: 1, title: "Math Problem Set 3", subject: "Mathematics", dueDate: "2023-06-25" },
-    { id: 2, title: "English Essay", subject: "English", dueDate: "2023-06-28" },
-    { id: 3, title: "Science Lab Report", subject: "Science", dueDate: "2023-06-30" },
-  ],
-  submittedAssignments: [
-    { id: 4, title: "History Research Paper", subject: "History", submittedDate: "2023-06-10", status: "Submitted" },
-    { id: 5, title: "Physics Problem Set", subject: "Physics", submittedDate: "2023-06-12", status: "Submitted" },
-    { id: 6, title: "Literature Analysis", subject: "English", dueDate: "2023-06-20", status: "Not Submitted" },
-  ]
+// API calls
+const fetchNewAssignments = async () => {
+  const response = await axiosInstance.get('/api/v1/assignment/all');
+  return response.data.items;
+}
+
+const fetchSubmittedAssignments = async () => {
+  const response = await axiosInstance.get('/api/v1/submission/all');
+  return response.data.items;
+}
+
+const submitAssignment = async (assignmentId, file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('assignmentId', assignmentId);
+
+  const response = await axiosInstance.post('/api/v1/submission/add', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return response.data;
 }
 
 export default function AssignmentsPage() {
-  const [selectedFile, setSelectedFile] = useState(null)
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  
+  // Fetch assignments using React Query
+  const { data: newAssignments, isLoading: isLoadingNewAssignments } = useQuery(
+    ['newAssignments'],
+    fetchNewAssignments
+  );
+
+  const { data: submittedAssignments, isLoading: isLoadingSubmittedAssignments } = useQuery(
+    ['submittedAssignments'],
+    fetchSubmittedAssignments
+  );
+
+  const submitMutation = useMutation(submitAssignment, {
+    onSuccess: (data) => {
+      queryClient.invalidateQueries(['newAssignments']);
+      queryClient.invalidateQueries(['submittedAssignments']);
+      toast({ title: 'Assignment Submitted', description: data.message });
+    },
+    onError: (data) => {
+      toast({ title: 'Error', description: data.message, variant: 'destructive' });
+    }
+  });
+
+  const [selectedFile, setSelectedFile] = useState(null);
 
   const handleFileChange = (event) => {
-    setSelectedFile(event.target.files[0])
-  }
+    setSelectedFile(event.target.files[0]);
+  };
 
   const handleSubmit = (assignmentId) => {
     if (selectedFile) {
-      console.log(`Submitting file ${selectedFile.name} for assignment ${assignmentId}`)
-      // Here you would typically upload the file to your server
-      setSelectedFile(null)
+      submitMutation.mutate({ assignmentId, file: selectedFile });
+      setSelectedFile(null);
     }
+  };
+
+  // Handle loading and error states
+  if (isLoadingNewAssignments || isLoadingSubmittedAssignments) {
+    return <div>Loading...</div>;
   }
 
   return (
@@ -64,7 +107,7 @@ export default function AssignmentsPage() {
             </TabsList>
             <TabsContent value="new">
               <div className="grid gap-6">
-                {assignmentsData.newAssignments.map((assignment) => (
+                {newAssignments.map((assignment) => (
                   <Card key={assignment.id} className="bg-white shadow-md hover:shadow-lg transition duration-300 ease-in-out transform hover:scale-105">
                     <CardHeader className="bg-blue-50">
                       <CardTitle className="text-blue-600">{assignment.title}</CardTitle>
@@ -104,7 +147,7 @@ export default function AssignmentsPage() {
             </TabsContent>
             <TabsContent value="submitted">
               <div className="grid gap-6">
-                {assignmentsData.submittedAssignments.map((assignment) => (
+                {submittedAssignments.map((assignment) => (
                   <Card key={assignment.id} className="bg-white shadow-md hover:shadow-lg transition duration-300 ease-in-out transform hover:scale-105">
                     <CardHeader className={assignment.status === "Submitted" ? "bg-green-50" : "bg-red-50"}>
                       <CardTitle className={assignment.status === "Submitted" ? "text-green-600" : "text-red-600"}>
@@ -138,6 +181,7 @@ export default function AssignmentsPage() {
           </Tabs>
         </div>
       </main>
+      <Toaster />
     </div>
   )
 }

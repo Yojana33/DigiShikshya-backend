@@ -21,11 +21,20 @@ const fetchTeachers = async () => {
 
 const fetchCourses = async () => {
   const response = await axiosInstance.get('/api/v1/course/all');
+    //console.log("Courses data:", response.data.items);
+  return response.data.items;
+};
+const fetchSemesters = async () => {
+  const response = await axiosInstance.get('/api/v1/semester/all');
+    //console.log("Semesters data:", response.data.items);
+
   return response.data.items;
 };
 
 const fetchBatches = async () => {
   const response = await axiosInstance.get('/api/v1/batch/all');
+    //console.log("Batches data:", response.data.items);
+
   return response.data.items;
 };
 
@@ -62,6 +71,16 @@ export default function TeacherPage() {
     ['batches'],
     fetchBatches,
   );
+  const { data: semesters, error: semesterError, isLoading: isLoadingSemesters } = useQuery(
+    ['semesters'],
+    fetchSemesters,
+  );
+
+  console.log(" teachers:", teachers);
+  console.log(" courses:", courses);
+  console.log(" batches:", batches);
+  console.log(" semesters:", semesters);
+
 
   const addMutation = useMutation(addTeacher, {
     onSuccess: (data) => {
@@ -109,11 +128,11 @@ export default function TeacherPage() {
   };
 
   // Handling loading and error states
-  if (isLoadingTeachers || isLoadingCourses || isLoadingBatches) {
+  if (isLoadingTeachers || isLoadingCourses || isLoadingBatches || isLoadingSemesters) {
     return <div>Loading...</div>; // You might want to add a spinner here
   }
 
-  if (teacherError || courseError || batchError) {
+  if (teacherError || courseError || batchError || semesterError) {
     return <div>Error loading data</div>;
   }
 
@@ -122,13 +141,14 @@ export default function TeacherPage() {
       <Toaster />
       <Tabs defaultValue="create" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="create">Add Teacher</TabsTrigger>
+          <TabsTrigger value="create">Assign Teacher</TabsTrigger>
           <TabsTrigger value="view">View Teachers</TabsTrigger>
         </TabsList>
         <TabsContent value="create">
           <CreateTeacherForm 
             courses={courses} 
             batches={batches} 
+            semesters={semesters}
             onCreateTeacher={handleCreateTeacher} 
           />
         </TabsContent>
@@ -154,6 +174,7 @@ export default function TeacherPage() {
               teacher={editingTeacher} 
               courses={courses} 
               batches={batches} 
+              semesters={semesters}
               onSave={handleEditTeacher} 
             />
           )}
@@ -163,24 +184,26 @@ export default function TeacherPage() {
   );
 }
 
-function CreateTeacherForm({ courses, batches, onCreateTeacher }) {
+function CreateTeacherForm({ courses, batches,semesters, onCreateTeacher }) {
   const [name, setName] = useState('');
   const [batch, setBatch] = useState('');
   const [course, setCourse] = useState('');
+  const [semester, setSemester] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onCreateTeacher({ name, batch, course });
+    onCreateTeacher({ name, batch, course, semester });
     setName('');
     setBatch('');
     setCourse('');
+    setSemester('');
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Add New Teacher</CardTitle>
-        <CardDescription>Enter the details for the new teacher</CardDescription>
+        <CardTitle>Assign Teacher</CardTitle>
+        <CardDescription>Enter the details to assign teacher</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -195,11 +218,13 @@ function CreateTeacherForm({ courses, batches, onCreateTeacher }) {
           </div>
           <div className="space-y-2">
             <Label htmlFor="edit-batch">Batch</Label>
+            {/* {console.log("dropdown:", batches)} */}
             <Select value={batch} onValueChange={setBatch}>
               <SelectTrigger>
                 <SelectValue placeholder="Select batch" />
               </SelectTrigger>
               <SelectContent>
+                {/* {console.log("dropdown:", batches)} */}
                 {batches.map((b) => (
                   <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
                 ))}
@@ -219,6 +244,19 @@ function CreateTeacherForm({ courses, batches, onCreateTeacher }) {
               </SelectContent>
             </Select>
           </div>
+                    <div className="space-y-2">
+            <Label htmlFor="edit-semester">Semester</Label>
+            <Select value={semester} onValueChange={setSemester}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select semester" />
+              </SelectTrigger>
+              <SelectContent>
+                {semesters.map((s) => (
+                  <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <Button type="submit" className="w-full">Add Teacher</Button>
         </form>
       </CardContent>
@@ -226,14 +264,15 @@ function CreateTeacherForm({ courses, batches, onCreateTeacher }) {
   );
 }
 
-function EditTeacherForm({ teacher, courses, batches, onSave }) {
+function EditTeacherForm({ teacher, courses, batches,semesters, onSave }) {
   const [name, setName] = useState(teacher.name);
   const [batch, setBatch] = useState(teacher.batchId);
   const [course, setCourse] = useState(teacher.courseId);
+  const [semester, setSemester] = useState(teacher.semesterId);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave({ id: teacher.id, name, batch, course });
+    onSave({ id: teacher.id, name, batch, course, semester });
   };
 
   return (
@@ -269,6 +308,19 @@ function EditTeacherForm({ teacher, courses, batches, onSave }) {
           <SelectContent>
             {courses.map((c) => (
               <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="edit-semester">Semester</Label>
+        <Select value={semester} onValueChange={setSemester}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select semester" />
+          </SelectTrigger>
+          <SelectContent>
+            {semesters.map((s) => (
+              <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
             ))}
           </SelectContent>
         </Select>
