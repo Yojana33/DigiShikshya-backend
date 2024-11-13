@@ -168,15 +168,15 @@ export default function SemesterPage() {
 function CreateSemesterForm({ onSave,courseData }) {
   const [semesterName, setSemesterName] = useState('');
   // const [description, setDescription] = useState('');
-  const [courseName, setCourseName] = useState('');
+  const [courseId, setCourseName] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave({ semesterName, description, courseName, startDate, endDate });
+    onSave({ semesterName, courseId, startDate, endDate });
     setSemesterName('');
-    setDescription('');
+    //setDescription('');
     setCourseName('');
     setStartDate('');
     setEndDate('');
@@ -201,7 +201,7 @@ function CreateSemesterForm({ onSave,courseData }) {
           </div>
           <div className="space-y-2">
             <Label htmlFor="course">Course</Label>
-            <Select value={courseName} onValueChange={setCourseName} required>
+            <Select value={courseId} onValueChange={setCourseName} required>
               <SelectTrigger>
                 <SelectValue placeholder="Select course" />
               </SelectTrigger>

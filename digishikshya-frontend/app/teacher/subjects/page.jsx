@@ -12,8 +12,51 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Bell, Menu, BookOpen, Upload, Plus, Search, Filter, Eye, Edit, Trash, Download, Play } from 'lucide-react'
 
+const fetchSubjects = async () => {
+  const response = await axiosInstance.get('/api/v1/subject/all');
+  //console.log(response.data.items);
+  return response.data.items;
+};
+
+const fetchBatches = async () => {
+  const response = await axiosInstance.get('/api/v1/batch/all');
+  return response.data.items;
+};
+
+const fetchCourses = async () => {
+  const response = await axiosInstance.get('/api/v1/course/all');
+  return response.data.items;
+};
+
+const fetchSemesters = async () => {
+  const response = await axiosInstance.get('/api/v1/semester/all');
+  return response.data.items;
+};
+const fetchNotes = async () => {
+  const response = await axiosInstance.get('/api/v1/material/all');
+  return response.data.items;
+};
+const addNotes = async (note) => {
+  const response = await axiosInstance.post('/api/v1/material/add', note);
+  return response.data;
+};
+
+// Updating an existing subject
+const updateNotes= async (note) => {
+  const response = await axiosInstance.patch(`/api/v1/material/update`, note);
+  return response.data;
+};
+
+// Deleting a subject
+const deleteNotes = async (noteId) => {
+  const response = await axiosInstance.delete(`/api/v1/material/delete`, {
+    data: { id: noteId },
+  });
+  return response.data;
+};
 // Mock data for subjects - replace with actual data fetching
 const subjects = [
   { id: 1, name: "Mathematics", batch: "2023", course: "Science", semester: "1st" },
@@ -32,13 +75,29 @@ const uploadedNotes = [
 ]
 
 export default function TeacherSubjectsPage() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const { data: subjects, error: subjectsError, isLoading: isLoadingSubjects } = useQuery(
+    ['subjects'],
+    fetchSubjects,
+    {
+      onError: (error) => {
+        console.error('Error fetching subjects:', error);
+      }
+    }
+  );
+
+  const { data: batches } = useQuery(['batches'], fetchBatches);
+  const { data: courses } = useQuery(['courses'], fetchCourses);
+  const { data: semesters } = useQuery(['semesters'], fetchSemesters);
+
   const [activeTab, setActiveTab] = useState('subjects')
   const [filteredSubjects, setFilteredSubjects] = useState(subjects)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedBatch, setSelectedBatch] = useState('')
   const [selectedCourse, setSelectedCourse] = useState('')
   const [selectedSemester, setSelectedSemester] = useState('')
-  const [isFilterOpen, setIsFilterOpen] = useState(false)
+  // const [isFilterOpen, setIsFilterOpen] = useState(false)
   const router = useRouter()
 
   const handleSearch = (term) => {
@@ -46,20 +105,20 @@ export default function TeacherSubjectsPage() {
     filterSubjects(term, selectedBatch, selectedCourse, selectedSemester)
   }
 
-  const handleBatchChange = (value) => {
-    setSelectedBatch(value)
-    filterSubjects(searchTerm, value, selectedCourse, selectedSemester)
-  }
+  // const handleBatchChange = (value) => {
+  //   setSelectedBatch(value)
+  //   filterSubjects(searchTerm, value, selectedCourse, selectedSemester)
+  // }
 
-  const handleCourseChange = (value) => {
-    setSelectedCourse(value)
-    filterSubjects(searchTerm, selectedBatch, value, selectedSemester)
-  }
+  // const handleCourseChange = (value) => {
+  //   setSelectedCourse(value)
+  //   filterSubjects(searchTerm, selectedBatch, value, selectedSemester)
+  // }
 
-  const handleSemesterChange = (value) => {
-    setSelectedSemester(value)
-    filterSubjects(searchTerm, selectedBatch, selectedCourse, value)
-  }
+  // const handleSemesterChange = (value) => {
+  //   setSelectedSemester(value)
+  //   filterSubjects(searchTerm, selectedBatch, selectedCourse, value)
+  // }
 
   const filterSubjects = (term, batch, course, semester) => {
     let filtered = subjects
@@ -77,6 +136,62 @@ export default function TeacherSubjectsPage() {
     }
     setFilteredSubjects(filtered)
   }
+  const addMutation = useMutation(addNotes, {
+    onSuccess: (data) => {
+      queryClient.invalidateQueries(['notes']);
+      toast({ title: 'Note Created', description: data.message });
+    },
+    onError: (data) => {
+      toast({ title: 'Error', description: data.message, variant: 'destructive' });
+    }
+  });
+
+  const updateMutation = useMutation(updateNotes, {
+    onSuccess: (data) => {
+      queryClient.invalidateQueries(['notes']);
+      toast({ title: 'Note Updated', description: data.message });
+    },
+    onError: (data) => {
+      toast({ title: 'Error', description: data.message, variant: 'destructive' });
+    }
+  });
+
+  const deleteMutation = useMutation(deleteNotes, {
+    onSuccess: (data) => {
+      queryClient.invalidateQueries(['notes']);
+      toast({ title: 'Note Deleted', description: data.message });
+    },
+    onError: (data) => {
+      toast({ title: 'Error', description: data.message, variant: 'destructive' });
+    }
+  });
+
+  const [editingNotes, setEditingNotes] = useState(null);
+
+  const handleCreateNotes = (newNotes) => {
+    addMutation.mutate(newNotes);
+  };
+
+  const handleEditNotes = (editedNotes) => {
+    updateMutation.mutate(editedNotes);
+    setEditingNotes(null);
+  };
+
+  const handleDeleteNotes = (materialId) => {
+    deleteMutation.mutate(materialId);
+  };
+
+  // Handling loading and error states
+  if (isLoadingNotes) {
+    return <div>Loading...</div>;
+  }
+
+  if (notesError) {
+    return <div>Error loading notes</div>;
+  }
+
+   // console.log("Hello");
+
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
@@ -113,16 +228,16 @@ export default function TeacherSubjectsPage() {
                   />
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 </div>
-                <Button
+                {/* <Button
                   variant="outline"
                   onClick={() => setIsFilterOpen(!isFilterOpen)}
                   className="w-full md:w-auto"
                 >
                   <Filter className="h-4 w-4 mr-2" />
                   Filter
-                </Button>
+                </Button> */}
               </div>
-              {isFilterOpen && (
+              {/* {isFilterOpen && (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                   <Select onValueChange={handleBatchChange}>
                     <SelectTrigger>
@@ -155,7 +270,7 @@ export default function TeacherSubjectsPage() {
                     </SelectContent>
                   </Select>
                 </div>
-              )}
+              )} */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredSubjects.map((subject) => (
                   <SubjectCard key={subject.id} subject={subject} router={router} />
