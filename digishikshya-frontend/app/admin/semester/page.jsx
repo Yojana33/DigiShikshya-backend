@@ -21,6 +21,12 @@ const fetchSemesters = async () => {
   return response.data.items;
 };
 
+const fetchCourses = async () => {
+  const response = await axiosInstance.get('/api/v1/course/all'); // Adjust the endpoint
+  return response.data.items;
+};
+
+
 const addSemester = async (semester) => {
   const response = await axiosInstance.post('/api/v1/semester/add', semester);
   return response.data;
@@ -43,7 +49,7 @@ export default function SemesterPage() {
 
   // Fetch semesters data from API
   const { data: semesters, error, isLoading } = useQuery(
-    ['semesters'],
+    ['allSemesters'],
     fetchSemesters,
     {
       onSuccess: (data) => {
@@ -55,20 +61,33 @@ export default function SemesterPage() {
     }
   );
 
+  const {data:courseData, error:courseError, isLoading:courseLoading} = useQuery(
+    ['courses'],
+    fetchCourses,
+    {
+      onSuccess: (data) => {
+        console.log('Successfully fetched courses:', data);
+      },
+      onError: (error) => {
+        console.error('Error fetching courses:', error);
+      }
+    }
+  );
+
   // Mutations for managing semesters
   const addMutation = useMutation(addSemester, {
     onSuccess: (data) => {
-      queryClient.invalidateQueries(['semesters']);
+      queryClient.refetchQueries(['allSemesters']);
       toast({ title: 'Semester Created', description: data.message });
     },
     onError: (data) => {
-      toast({ title: 'Error', description: data.message, variant: 'destructive' });
+      toast({ title: 'Error', description: data.error.message, variant: 'destructive' });
     }
   });
 
   const updateMutation = useMutation(updateSemester, {
     onSuccess: (data) => {
-      queryClient.invalidateQueries(['semesters']);
+      queryClient.invalidateQueries(['allSemesters']);
       toast({ title: 'Semester Updated', description: data.message });
     },
     onError: (data) => {
@@ -78,7 +97,7 @@ export default function SemesterPage() {
 
   const deleteMutation = useMutation(deleteSemester, {
     onSuccess: (data) => {
-      queryClient.invalidateQueries(['semesters']);
+      queryClient.invalidateQueries(['allSemesters']);
       toast({ title: 'Semester Deleted', description: data.message });
     },
     onError: (data) => {
@@ -118,7 +137,7 @@ export default function SemesterPage() {
           <TabsTrigger value="view">View Semesters</TabsTrigger>
         </TabsList>
         <TabsContent value="create">
-          <CreateSemesterForm onSave={handleCreateSemester} />
+          <CreateSemesterForm onSave={handleCreateSemester} courseData = {courseData} />
         </TabsContent>
         <TabsContent value="view">
           <SemesterList 
@@ -146,7 +165,7 @@ export default function SemesterPage() {
   );
 }
 
-function CreateSemesterForm({ onSave }) {
+function CreateSemesterForm({ onSave,courseData }) {
   const [semesterName, setSemesterName] = useState('');
   const [description, setDescription] = useState('');
   const [courseId, setCourseId] = useState('');
@@ -187,7 +206,9 @@ function CreateSemesterForm({ onSave }) {
                 <SelectValue placeholder="Select course" />
               </SelectTrigger>
               <SelectContent>
-                {/* Assume courses data is fetched and passed down as a prop */}
+                {courseData.map((course) => (
+                  <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -251,7 +272,9 @@ function EditSemesterForm({ semester, onSave }) {
                 <SelectValue placeholder="Select course" />
               </SelectTrigger>
               <SelectContent>
-                {/* Assume courses data is fetched and passed down as a prop */}
+                {courseData.map((course) => (
+                  <SelectItem key={course.id} value={course.id}>{course.name}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
