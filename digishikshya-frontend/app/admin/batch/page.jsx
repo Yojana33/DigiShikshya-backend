@@ -178,15 +178,7 @@ function CreateBatchForm({ onCreateBatch }) {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Batch Name</Label>
-            <Input 
-              id="name" 
-              value={name} 
-              onChange={(e) => setName(e.target.value)} 
-              required 
-            />
-          </div>
+          
           <div className="space-y-2">
             <Label htmlFor="startDate">Start Date</Label>
             <Input 
@@ -243,7 +235,7 @@ function BatchList({ batches, onEdit, onDelete }) {
         <Card key={batch.id}>
           <CardHeader>
             <div className="flex justify-between items-center">
-              <CardTitle>Batch: {batch.batchName}</CardTitle>
+              <CardTitle>Batch {batch.batchName}</CardTitle>
               <div className="space-x-2">
                 <Button variant="outline" size="icon" onClick={() => onEdit(batch)}>
                   <Edit className="h-4 w-4" />

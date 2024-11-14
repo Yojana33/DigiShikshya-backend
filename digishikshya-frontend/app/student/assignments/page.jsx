@@ -1,14 +1,12 @@
-'use client'
-
+"use client";
 import { useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Bell, Menu, FileText, Upload, CheckCircle, XCircle } from 'lucide-react'
+import { Bell, Upload, CheckCircle, XCircle } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import axiosInstance from '@/config/axiosconfig'
 import { useToast } from '@/hooks/use-toast'
@@ -16,7 +14,7 @@ import { Toaster } from '@/components/ui/toaster'
 
 // API calls
 const fetchNewAssignments = async () => {
-  const response = await axiosInstance.get('/api/v1/assignment/all');
+  const response = await axiosInstance.get('/api/v1/assignment/all?Page=1&PageSize=10');
   return response.data.items;
 }
 
@@ -25,7 +23,7 @@ const fetchSubmittedAssignments = async () => {
   return response.data.items;
 }
 
-const submitAssignment = async (assignmentId, file) => {
+const submitAssignment = async ({ assignmentId, file }) => {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('assignmentId', assignmentId);
@@ -64,16 +62,23 @@ export default function AssignmentsPage() {
     }
   });
 
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFiles, setSelectedFiles] = useState({});
 
-  const handleFileChange = (event) => {
-    setSelectedFile(event.target.files[0]);
+  const handleFileChange = (assignmentId, event) => {
+    setSelectedFiles((prev) => ({
+      ...prev,
+      [assignmentId]: event.target.files[0],
+    }));
   };
 
   const handleSubmit = (assignmentId) => {
-    if (selectedFile) {
-      submitMutation.mutate({ assignmentId, file: selectedFile });
-      setSelectedFile(null);
+    const file = selectedFiles[assignmentId];
+    if (file) {
+      submitMutation.mutate({ assignmentId, file });
+      setSelectedFiles((prev) => ({
+        ...prev,
+        [assignmentId]: null,
+      }));
     }
   };
 
@@ -122,7 +127,7 @@ export default function AssignmentsPage() {
                           id={`file-upload-${assignment.id}`}
                           type="file"
                           className="hidden"
-                          onChange={handleFileChange}
+                          onChange={(event) => handleFileChange(assignment.id, event)}
                         />
                         <Label
                           htmlFor={`file-upload-${assignment.id}`}
@@ -131,11 +136,11 @@ export default function AssignmentsPage() {
                           <Upload className="h-4 w-4 mr-2" />
                           Choose File
                         </Label>
-                        {selectedFile && <span className="ml-2 text-sm">{selectedFile.name}</span>}
+                        {selectedFiles[assignment.id] && <span className="ml-2 text-sm">{selectedFiles[assignment.id].name}</span>}
                       </div>
                       <Button 
                         onClick={() => handleSubmit(assignment.id)} 
-                        disabled={!selectedFile}
+                        disabled={!selectedFiles[assignment.id]}
                         className="bg-green-600 text-white hover:bg-green-700 transition duration-300 ease-in-out transform hover:scale-105"
                       >
                         Submit

@@ -56,7 +56,9 @@ const updateStudent = async (student) => {
 };
 
 const deleteStudent = async (studentId) => {
-  const response = await axiosInstance.delete(`/api/v1/enrollment/delete`);
+  const response = await axiosInstance.delete(`/api/v1/enrollment/delete`, {
+    data: { id: studentId },
+  });
   return response.data;
 };
 
@@ -64,7 +66,7 @@ export default function EnrollStudentPage() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  // Fetch students, courses, batches, and semesters data from API
+  // Fetch students, batches, and semesters data from API
   const { data: students, error: studentError, isLoading: isLoadingStudents } = useQuery(
     ['students'],
     fetchStudents,
@@ -177,11 +179,11 @@ export default function EnrollStudentPage() {
   };
 
   // Handling loading and error states
-  if (isLoadingStudents || isLoadingCourses || isLoadingBatches || isLoadingSemesters) {
+  if (isLoadingStudents || isLoadingBatches || isLoadingSemesters) {
     return <div>Loading...</div>; // You might want to add a spinner here
   }
 
-  if (studentError || courseError || batchError || semesterError) {
+  if (studentError || batchError || semesterError) {
     return <div>Error loading data</div>;
   }
 
@@ -222,7 +224,6 @@ export default function EnrollStudentPage() {
           {editingStudent && (
             <EditStudentForm 
               student={editingStudent} 
-              courses={courses} 
               batches={batches} 
               semesters={semesters} 
               onSave={handleEditStudent} 
@@ -238,16 +239,16 @@ function CreateStudentForm({
   courses, batches, users, semesters, onCreateStudent }) {
   const [name, setName] = useState('');
   const [batch, setBatch] = useState('');
-  const [course, setCourse] = useState('');
   const [semester, setSemester] = useState('');
+  const [enrolledDate, setEnrolledDate] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onCreateStudent({ name, batch, course, semester });
+    onCreateStudent({ name, batch, semester, enrolledDate });
     setName('');
     setBatch('');
-    setCourse('');
     setSemester('');
+    setEnrolledDate('');
   };
 
   return (
@@ -309,9 +310,20 @@ function CreateStudentForm({
               <SelectContent>
                 {semesters.map((s) => (
                   <SelectItem key={s.id} value={s.id}>{s.semesterName}</SelectItem>
+                  <SelectItem key={s.id} value={s.id}>{s.semesterName}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="enrolledDate">Enrolled Date</Label>
+            <Input 
+              id="enrolledDate" 
+              type="date" 
+              value={enrolledDate} 
+              onChange={(e) => setEnrolledDate(e.target.value)} 
+              required 
+            />
           </div>
           <Button type="submit" className="w-full">Enroll Student</Button>
         </form>
@@ -320,15 +332,15 @@ function CreateStudentForm({
   );
 }
 
-function EditStudentForm({ student, courses, batches, semesters, onSave }) {
+function EditStudentForm({ student, batches, semesters, onSave }) {
   const [name, setName] = useState(student.name);
   const [batch, setBatch] = useState(student.batchId);
-  const [course, setCourse] = useState(student.courseId);
   const [semester, setSemester] = useState(student.semesterId);
+  const [enrolledDate, setEnrolledDate] = useState(student.enrolledDate);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave({ id: student.id, name, batch, course, semester });
+    onSave({ id: student.id, name, batch, semester, enrolledDate });
   };
 
   return (
@@ -377,9 +389,20 @@ function EditStudentForm({ student, courses, batches, semesters, onSave }) {
           <SelectContent>
             {semesters.map((s) => (
               <SelectItem key={s.id} value={s.id}>{s.semesterName}</SelectItem>
+              <SelectItem key={s.id} value={s.id}>{s.semesterName}</SelectItem>
             ))}
           </SelectContent>
         </Select>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="edit-enrolledDate">Enrolled Date</Label>
+        <Input 
+          id="edit-enrolledDate" 
+          type="date" 
+          value={enrolledDate} 
+          onChange={(e) => setEnrolledDate(e.target.value)} 
+          required 
+        />
       </div>
       <Button type="submit" className="w-full">Save Changes</Button>
     </form>
@@ -388,16 +411,40 @@ function EditStudentForm({ student, courses, batches, semesters, onSave }) {
 
 function StudentList({ students, onEdit, onDelete }) {
   return (
-    <div>
-      {students.map(student => (
-        <div key={student.id} className="flex justify-between items-center">
-          <div>{student.name}</div>
-          <div>
-            <Button onClick={() => onEdit(student)}><Edit /></Button>
-            <Button onClick={() => onDelete(student.id)}><Trash /></Button>
-          </div>
-        </div>
-      ))}
+    <div className="space-y-4">
+      {students.length === 0 ? (
+        <div>No students available.</div>
+      ) : (
+        students.map((student) => (
+          <Card key={student.id} className="flex justify-between items-center p-4 border rounded-lg shadow-sm">
+            <CardTitle>
+              <p className="text-lg font-medium">Student Name: {student.studentName}</p>
+              <p className="text-lg text-black-500">
+                Course Name: {student.courseName}
+              </p>
+              <p className="text-lg text-black-500">
+                Batch Name: {student.batchStartDate}
+              </p>
+              <p className="text-lg text-black-500">
+                Semester Name: {student.semesterName}
+              </p>
+              <p className="text-lg text-black-500">
+                Enrolled Date: {new Date(student.enrolledDate).toLocaleDateString()}
+              </p>
+            </CardTitle>
+            <div className="flex space-x-2">
+              <Button variant="outline" size="icon" onClick={() => onEdit(student)}>
+                <Edit className="h-4 w-4" />
+                <span className="sr-only">Edit</span>
+              </Button>
+              <Button variant="outline" size="icon" onClick={() => onDelete(student.id)}>
+                <Trash className="h-4 w-4" />
+                <span className="sr-only">Delete</span>
+              </Button>
+            </div>
+          </Card>
+        ))
+      )}
     </div>
   );
 }

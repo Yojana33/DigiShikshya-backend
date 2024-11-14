@@ -19,22 +19,8 @@ const fetchTeachers = async () => {
   return response.data.items;
 };
 
-const fetchCourses = async () => {
-  const response = await axiosInstance.get('/api/v1/course/all');
-    //console.log("Courses data:", response.data.items);
-  return response.data.items;
-};
-const fetchSemesters = async () => {
-  const response = await axiosInstance.get('/api/v1/semester/all');
-    //console.log("Semesters data:", response.data.items);
-
-  return response.data.items;
-};
-
-const fetchBatches = async () => {
-  const response = await axiosInstance.get('/api/v1/batch/all');
-    //console.log("Batches data:", response.data.items);
-
+const fetchSubjects = async () => {
+  const response = await axiosInstance.get('/api/v1/subject/all');
   return response.data.items;
 };
 
@@ -49,7 +35,9 @@ const updateTeacher = async (teacher) => {
 };
 
 const deleteTeacher = async (teacherId) => {
-  const response = await axiosInstance.delete(`/api/v1/teacher-assign/delete`);
+  const response = await axiosInstance.delete(`/api/v1/teacher-assign/delete`, {
+    data: { id: teacherId },
+  });
   return response.data;
 };
 
@@ -62,53 +50,38 @@ export default function TeacherPage() {
     fetchTeachers,
   );
 
-  const { data: courses, error: courseError, isLoading: isLoadingCourses } = useQuery(
-    ['courses'],
-    fetchCourses,
+  const { data: subjects, error: subjectError, isLoading: isLoadingSubjects } = useQuery(
+    ['subjects'],
+    fetchSubjects,
   );
-
-  const { data: batches, error: batchError, isLoading: isLoadingBatches } = useQuery(
-    ['batches'],
-    fetchBatches,
-  );
-  const { data: semesters, error: semesterError, isLoading: isLoadingSemesters } = useQuery(
-    ['semesters'],
-    fetchSemesters,
-  );
-
-  console.log(" teachers:", teachers);
-  console.log(" courses:", courses);
-  console.log(" batches:", batches);
-  console.log(" semesters:", semesters);
-
 
   const addMutation = useMutation(addTeacher, {
     onSuccess: (data) => {
       queryClient.invalidateQueries(['teachers']);
-      toast({ title: 'Teacher Created', description: data.message });
+      toast({ title: 'Teacher Assigned', description: 'Teacher has been successfully assigned.' });
     },
-    onError: (data) => {
-      toast({ title: 'Error', description: data.message, variant: 'destructive' });
+    onError: (error) => {
+      toast({ title: 'Error', description: error.response.data.message, variant: 'destructive' });
     }
   });
 
   const updateMutation = useMutation(updateTeacher, {
     onSuccess: (data) => {
       queryClient.invalidateQueries(['teachers']);
-      toast({ title: 'Teacher Updated', description: data.message });
+      toast({ title: 'Teacher Updated', description: 'Teacher assignment has been successfully updated.' });
     },
-    onError: (data) => {
-      toast({ title: 'Error', description: data.message, variant: 'destructive' });
+    onError: (error) => {
+      toast({ title: 'Error', description: error.response.data.message, variant: 'destructive' });
     }
   });
 
   const deleteMutation = useMutation(deleteTeacher, {
     onSuccess: (data) => {
       queryClient.invalidateQueries(['teachers']);
-      toast({ title: 'Teacher Deleted', description: data.message });
+      toast({ title: 'Teacher Deleted', description: 'Teacher assignment has been successfully deleted.' });
     },
-    onError: (data) => {
-      toast({ title: 'Error', description: data.message, variant: 'destructive' });
+    onError: (error) => {
+      toast({ title: 'Error', description: error.response.data.message, variant: 'destructive' });
     }
   });
 
@@ -128,11 +101,11 @@ export default function TeacherPage() {
   };
 
   // Handling loading and error states
-  if (isLoadingTeachers || isLoadingCourses || isLoadingBatches || isLoadingSemesters) {
+  if (isLoadingTeachers || isLoadingSubjects) {
     return <div>Loading...</div>; // You might want to add a spinner here
   }
 
-  if (teacherError || courseError || batchError || semesterError) {
+  if (teacherError || subjectError) {
     return <div>Error loading data</div>;
   }
 
@@ -146,9 +119,7 @@ export default function TeacherPage() {
         </TabsList>
         <TabsContent value="create">
           <CreateTeacherForm 
-            courses={courses} 
-            batches={batches} 
-            semesters={semesters}
+            subjects={subjects} 
             onCreateTeacher={handleCreateTeacher} 
           />
         </TabsContent>
@@ -166,15 +137,13 @@ export default function TeacherPage() {
           <DialogHeader>
             <DialogTitle>Edit Teacher</DialogTitle>
             <DialogDescription>
-              Make changes to the teacher here. Click save when you're done.
+              Make changes to the teacher assignment here. Click save when you're done.
             </DialogDescription>
           </DialogHeader>
           {editingTeacher && (
             <EditTeacherForm 
               teacher={editingTeacher} 
-              courses={courses} 
-              batches={batches} 
-              semesters={semesters}
+              subjects={subjects} 
               onSave={handleEditTeacher} 
             />
           )}
@@ -184,19 +153,20 @@ export default function TeacherPage() {
   );
 }
 
-function CreateTeacherForm({ courses, batches,semesters, onCreateTeacher }) {
-  const [name, setName] = useState('');
-  const [batch, setBatch] = useState('');
-  const [course, setCourse] = useState('');
-  const [semester, setSemester] = useState('');
+function CreateTeacherForm({ subjects, onCreateTeacher }) {
+  const [teacherName, setTeacherName] = useState('');
+  const [subjectName, setSubjectName] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onCreateTeacher({ name, batch, course, semester });
-    setName('');
-    setBatch('');
-    setCourse('');
-    setSemester('');
+    const selectedSubject = subjects.find(subject => subject.subjectName === subjectName);
+    const newTeacher = {
+      teacherName,
+      subjectId: selectedSubject.id,
+    };
+    onCreateTeacher(newTeacher);
+    setTeacherName('');
+    setSubjectName('');
   };
 
   return (
@@ -208,119 +178,69 @@ function CreateTeacherForm({ courses, batches,semesters, onCreateTeacher }) {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Teacher Name</Label>
+            <Label htmlFor="teacherName">Teacher Name</Label>
             <Input 
-              id="name" 
-              value={name} 
-              onChange={(e) => setName(e.target.value)} 
+              id="teacherName" 
+              value={teacherName} 
+              onChange={(e) => setTeacherName(e.target.value)} 
               required 
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="edit-batch">Batch</Label>
-            {/* {console.log("dropdown:", batches)} */}
-            <Select value={batch} onValueChange={setBatch}>
+            <Label htmlFor="subjectName">Subject</Label>
+            <Select value={subjectName} onValueChange={setSubjectName}>
               <SelectTrigger>
-                <SelectValue placeholder="Select batch" />
+                <SelectValue placeholder="Select subject" />
               </SelectTrigger>
               <SelectContent>
-                {/* {console.log("dropdown:", batches)} */}
-                {batches.map((b) => (
-                  <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                {subjects.map((subject) => (
+                  <SelectItem key={subject.id} value={subject.subjectName}>{subject.subjectName}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="edit-course">Course</Label>
-            <Select value={course} onValueChange={setCourse}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select course" />
-              </SelectTrigger>
-              <SelectContent>
-                {courses.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-                    <div className="space-y-2">
-            <Label htmlFor="edit-semester">Semester</Label>
-            <Select value={semester} onValueChange={setSemester}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select semester" />
-              </SelectTrigger>
-              <SelectContent>
-                {semesters.map((s) => (
-                  <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <Button type="submit" className="w-full">Add Teacher</Button>
+          <Button type="submit" className="w-full">Assign Teacher</Button>
         </form>
       </CardContent>
     </Card>
   );
 }
 
-function EditTeacherForm({ teacher, courses, batches,semesters, onSave }) {
-  const [name, setName] = useState(teacher.name);
-  const [batch, setBatch] = useState(teacher.batchId);
-  const [course, setCourse] = useState(teacher.courseId);
-  const [semester, setSemester] = useState(teacher.semesterId);
+function EditTeacherForm({ teacher, subjects, onSave }) {
+  const [teacherName, setTeacherName] = useState(teacher.teacherName);
+  const [subjectName, setSubjectName] = useState(teacher.subjectName);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave({ id: teacher.id, name, batch, course, semester });
+    const selectedSubject = subjects.find(subject => subject.subjectName === subjectName);
+    const updatedTeacher = {
+      id: teacher.id,
+      teacherName,
+      subjectId: selectedSubject.id,
+    };
+    onSave(updatedTeacher);
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="edit-name">Teacher Name</Label>
+        <Label htmlFor="edit-teacherName">Teacher Name</Label>
         <Input 
-          id="edit-name" 
-          value={name} 
-          onChange={(e) => setName(e.target.value)} 
+          id="edit-teacherName" 
+          value={teacherName} 
+          onChange={(e) => setTeacherName(e.target.value)} 
           required 
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="edit-batch">Batch</Label>
-        <Select value={batch} onValueChange={setBatch}>
+        <Label htmlFor="edit-subjectName">Subject</Label>
+        <Select value={subjectName} onValueChange={setSubjectName}>
           <SelectTrigger>
-            <SelectValue placeholder="Select batch" />
+            <SelectValue placeholder="Select subject" />
           </SelectTrigger>
           <SelectContent>
-            {batches.map((b) => (
-              <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="edit-course">Course</Label>
-        <Select value={course} onValueChange={setCourse}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select course" />
-          </SelectTrigger>
-          <SelectContent>
-            {courses.map((c) => (
-              <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="edit-semester">Semester</Label>
-        <Select value={semester} onValueChange={setSemester}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select semester" />
-          </SelectTrigger>
-          <SelectContent>
-            {semesters.map((s) => (
-              <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+            {subjects.map((subject) => (
+              <SelectItem key={subject.id} value={subject.subjectName}>{subject.subjectName}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -332,16 +252,37 @@ function EditTeacherForm({ teacher, courses, batches,semesters, onSave }) {
 
 function TeacherList({ teachers, onEdit, onDelete }) {
   return (
-    <div>
-      {teachers.map(teacher => (
-        <div key={teacher.id} className="flex justify-between items-center">
-          <div>{teacher.name}</div>
-          <div>
-            <Button onClick={() => onEdit(teacher)}><Edit /></Button>
-            <Button onClick={() => onDelete(teacher.id)}><Trash /></Button>
-          </div>
-        </div>
-      ))}
+    <div className="space-y-4">
+      {teachers.length === 0 ? (
+        <div>No teachers available.</div>
+      ) : (
+        teachers.map((teacher) => (
+          <Card key={teacher.id} className="flex justify-between items-center p-4 border rounded-lg shadow-sm">
+            <CardTitle>
+              <p className="text-lg font-medium">Teacher Name: {teacher.teacherName}</p>
+              <p className="text-lg text-black-500">
+                Subject Name: {teacher.subjectName}
+              </p>
+              <p className="text-lg text-black-500">
+                Course Name: {teacher.courseName}
+              </p>
+              <p className="text-lg text-black-500">
+                Semester Name: {teacher.semesterName}
+              </p>
+            </CardTitle>
+            <div className="flex space-x-2">
+              <Button variant="outline" size="icon" onClick={() => onEdit(teacher)}>
+                <Edit className="h-4 w-4" />
+                <span className="sr-only">Edit</span>
+              </Button>
+              <Button variant="outline" size="icon" onClick={() => onDelete(teacher.id)}>
+                <Trash className="h-4 w-4" />
+                <span className="sr-only">Delete</span>
+              </Button>
+            </div>
+          </Card>
+        ))
+      )}
     </div>
   );
 }
