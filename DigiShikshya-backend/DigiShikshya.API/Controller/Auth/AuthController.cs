@@ -99,7 +99,7 @@ public class AuthController : ControllerBase
         }
     }
 
-    [HttpGet("users/{role}")]
+    [HttpGet("users")]
     public async Task<IActionResult> GetUsersByRole(string role)
     {
         try

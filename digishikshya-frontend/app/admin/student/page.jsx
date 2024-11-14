@@ -19,6 +19,17 @@ const fetchStudents = async () => {
   return response.data.items;
 };
 
+const getStudents = async () => {
+  const response = await axiosInstance.get('/api/auth/users',{
+    params: {
+      role: 'Student'
+  }
+    
+  });
+  
+  return response.data;
+};
+
 const fetchCourses = async () => {
   const response = await axiosInstance.get('/api/v1/course/all');
   return response.data.items;
@@ -41,7 +52,7 @@ const addStudent = async (student) => {
 
 const updateStudent = async (student) => {
   const response = await axiosInstance.patch(`/api/v1/enrollment/update`, student);
-  return response.data;
+  return response;
 };
 
 const deleteStudent = async (studentId) => {
@@ -78,6 +89,19 @@ export default function EnrollStudentPage() {
         console.error('Error fetching courses:', error);
       }
     }
+  );
+
+  const { data: users, error: userError, isLoading: isLoadingUsers } = useQuery(
+    ['users'],
+    getStudents,
+    {
+      onSuccess: (data) => {
+        console.log('Successfully fetched users:', data);
+      },
+      onError: (error) => {
+        console.error('Error fetching users:', error);
+      }
+    } 
   );
 
   const { data: batches, error: batchError, isLoading: isLoadingBatches } = useQuery(
@@ -172,7 +196,8 @@ export default function EnrollStudentPage() {
         <TabsContent value="create">
           <CreateStudentForm 
             courses={courses} 
-            batches={batches} 
+            batches={batches}
+            users={users}
             semesters={semesters} 
             onCreateStudent={handleCreateStudent} 
           />
@@ -209,7 +234,8 @@ export default function EnrollStudentPage() {
   );
 }
 
-function CreateStudentForm({ courses, batches, semesters, onCreateStudent }) {
+function CreateStudentForm({ 
+  courses, batches, users, semesters, onCreateStudent }) {
   const [name, setName] = useState('');
   const [batch, setBatch] = useState('');
   const [course, setCourse] = useState('');
@@ -232,14 +258,21 @@ function CreateStudentForm({ courses, batches, semesters, onCreateStudent }) {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
+                 <div className="space-y-2">
             <Label htmlFor="name">Student Name</Label>
-            <Input 
-              id="name" 
-              value={name} 
-              onChange={(e) => setName(e.target.value)} 
-              required 
-            />
+            <Select value={name} onValueChange={setName} required>
+              <SelectTrigger>
+                <SelectValue placeholder="Select name" />
+              </SelectTrigger>
+              <SelectContent className="max-h-[200px] overflow-y-auto">
+                {users?.filter(user => user.username !== "service-account-digishikshya-client")
+                  .map((user) => (
+                    <SelectItem key={user.id} value={user.id}>
+                      {user.firstName} {user.lastName}
+                    </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label htmlFor="edit-batch">Batch</Label>
@@ -249,7 +282,7 @@ function CreateStudentForm({ courses, batches, semesters, onCreateStudent }) {
               </SelectTrigger>
               <SelectContent>
                 {batches.map((b) => (
-                  <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                  <SelectItem key={b.id} value={b.id}>{b.batchName}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -275,7 +308,7 @@ function CreateStudentForm({ courses, batches, semesters, onCreateStudent }) {
               </SelectTrigger>
               <SelectContent>
                 {semesters.map((s) => (
-                  <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                  <SelectItem key={s.id} value={s.id}>{s.semesterName}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -330,7 +363,7 @@ function EditStudentForm({ student, courses, batches, semesters, onSave }) {
           </SelectTrigger>
           <SelectContent>
             {courses.map((c) => (
-              <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+              <SelectItem key={c.id} value={c.id}>{c.courseName}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -343,7 +376,7 @@ function EditStudentForm({ student, courses, batches, semesters, onSave }) {
           </SelectTrigger>
           <SelectContent>
             {semesters.map((s) => (
-              <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+              <SelectItem key={s.id} value={s.id}>{s.semesterName}</SelectItem>
             ))}
           </SelectContent>
         </Select>

@@ -249,7 +249,7 @@ function CreateSubjectForm({ onCreateSubject, batches, courses, semesters }) {
             >
               <option value="">Select Semester</option>
               {semesters && semesters.map((semester) => (
-                <option key={semester.id} value={semester.id}>{semester.name}</option>
+                <option key={semester.id} value={semester.id}>{semester.semesterName}</option>
               ))}
             </select>
           </div>

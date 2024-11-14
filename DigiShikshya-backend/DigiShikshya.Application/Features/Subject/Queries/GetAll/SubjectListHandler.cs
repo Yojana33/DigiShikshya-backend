@@ -7,6 +7,7 @@ public class SubjectListHandler(ISubjectRepository _subjectRepository) : IReques
 {
     public async Task<PaginatedResult<SubjectListResponse>> Handle(SubjectListQuery request, CancellationToken cancellationToken)
     {
+        
         var subjects = await _subjectRepository.GetAllSubjects(request);
 
         var response = new PaginatedResult<SubjectListResponse>

@@ -51,7 +51,7 @@ public class KeycloakService : IKeycloakService
         {
             { "client_id", _keycloakSettings.ClientId },
             { "client_secret", _keycloakSettings.ClientSecret },
-            { "grant_type", _keycloakSettings.GrantType },
+            { "grant_type", password },
             { "username", username },
             { "password", password }
         };
