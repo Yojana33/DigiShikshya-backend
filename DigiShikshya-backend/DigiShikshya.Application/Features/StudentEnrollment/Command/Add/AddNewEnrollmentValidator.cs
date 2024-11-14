@@ -13,7 +13,7 @@ public class AddNewEnrollmentValidator : AbstractValidator<AddNewEnrollment>
         RuleFor(x => x.SemesterId)
             .NotEmpty().WithMessage("Semester ID is required").WithErrorCode("400");
 
-        RuleFor(x => x.EnrolledDate)
-            .NotEmpty().WithMessage("Enrolled date is required").WithErrorCode("400");
+        //RuleFor(x => x.EnrolledDate)
+        // .NotEmpty().WithMessage("Enrolled date is required").WithErrorCode("400");
     }
 }

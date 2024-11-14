@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import TeacherSidebar from './sidebar/page';
 import { Button } from "@/components/ui/button";
 import { Menu } from 'lucide-react';
+import { QueryClient, QueryClientProvider } from 'react-query';
 
 export default function TeacherLayout({ children }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -29,11 +30,14 @@ export default function TeacherLayout({ children }) {
        <Menu className="h-5 w-5" />
        </div>
       </Button>
+      <QueryClientProvider client={queryClient} >
+
       <main className="flex-1 p-4">
         <div className="space-y-4">
           {children}
         </div>
       </main>
+      </QueryClientProvider>
     </div>
   );
 }

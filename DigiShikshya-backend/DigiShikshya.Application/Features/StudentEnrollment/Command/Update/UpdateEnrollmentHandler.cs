@@ -44,7 +44,7 @@ public class UpdateEnrollmentHandler : IRequestHandler<UpdateEnrollment, UpdateE
         existingEnrollment.StudentId = request.NewStudentId != Guid.Empty ? request.NewStudentId : existingEnrollment.StudentId;
         existingEnrollment.BatchId = request.NewBatchId != Guid.Empty ? request.NewBatchId : existingEnrollment.BatchId;
         existingEnrollment.SemesterId = request.NewSemesterId != Guid.Empty ? request.NewSemesterId : existingEnrollment.SemesterId;
-        existingEnrollment.EnrolledDate = request.NewEnrolledDate != default ? request.NewEnrolledDate : existingEnrollment.EnrolledDate;
+        // existingEnrollment.EnrolledDate = request.NewEnrolledDate != default ? request.NewEnrolledDate : existingEnrollment.EnrolledDate;
         existingEnrollment.UpdatedAt = DateTime.Now;
 
         // Update the enrollment in the repository

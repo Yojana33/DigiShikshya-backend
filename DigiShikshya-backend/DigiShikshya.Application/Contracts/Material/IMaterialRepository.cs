@@ -1,6 +1,6 @@
 public interface IMaterialRepository
 {
-    Task<PaginatedResult<Material>> GetAllMaterials(MaterialListQuery request);
+    Task<PaginatedResult<MaterialListResponse>> GetAllMaterials(MaterialListQuery request);
     Task<Material> GetMaterialById(Guid id);
     Task<bool> AddMaterial(Material material);
     Task<bool> UpdateMaterial(Material material);

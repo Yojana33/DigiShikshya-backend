@@ -3,7 +3,7 @@ public class SubmissionListResponse
     public Guid Id { get; set; }
     public Guid AssignmentId { get; set; }
     public Guid StudentId { get; set; }
-    public string? SubmittedFile { get; set; }
+    public byte[]? SubmittedFile { get; set; }
     public DateTime SubmittedAt { get; set; }
     public bool Status { get; set; }
 

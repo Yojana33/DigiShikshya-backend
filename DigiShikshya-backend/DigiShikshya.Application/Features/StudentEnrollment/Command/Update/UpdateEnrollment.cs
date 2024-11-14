@@ -7,5 +7,5 @@ public class UpdateEnrollment : IRequest<UpdateEnrollmentResponse>
     public Guid NewStudentId { get; set; }
     public Guid NewBatchId { get; set; }
     public Guid NewSemesterId { get; set; }
-    public DateTime NewEnrolledDate { get; set; }
+    // public DateTime NewEnrolledDate { get; set; }
 }

@@ -81,6 +81,9 @@ export default function TeacherSubjectsPage() {
     ['subjects'],
     fetchSubjects,
     {
+       onSuccess: (data) => {
+        console.log('Successfully fetched batches:', data);
+      },
       onError: (error) => {
         console.error('Error fetching subjects:', error);
       }
@@ -300,7 +303,7 @@ function SubjectCard({ subject, router }) {
         </CardDescription>
       </CardHeader>
       <CardFooter className="flex justify-between">
-        <Button 
+        {/* <Button 
           variant="outline" 
           size="sm" 
           className="bg-blue-600 text-white hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105"
@@ -308,7 +311,7 @@ function SubjectCard({ subject, router }) {
         >
           <BookOpen className="h-4 w-4 mr-2" />
           View Details
-        </Button>
+        </Button> */}
         <UploadNotesDialog subjectId={subject.id} subjectName={subject.name} />
       </CardFooter>
     </Card>
@@ -319,17 +322,41 @@ function UploadNotesDialog({ subjectId, subjectName }) {
   const [file, setFile] = useState(null)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  const [uploadedBy, setUploadedBy] = useState('') // Added state for UploadedBy
+
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0])
   }
 
-  const handleUpload = () => {
-    // Add logic to upload the file
-    console.log(`Uploading file for subject ${subjectId}:`, { file, title, description })
+  const handleUpload = async () => {
+    if (!file || !title || !description || !uploadedBy) {
+      console.error('All fields are required')
+      return
+    }
+
+    const formData = new FormData()
+    formData.append('SubjectId', subjectId)
+    formData.append('Title', title)
+    formData.append('Description', description)
+    formData.append('ContentType', file.type)
+    formData.append('Content', file)
+    formData.append('UploadedBy', uploadedBy)
+
+    try {
+      const response = await axiosInstance.post('/api/v1/material/add', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+    console.log('Upload' , response.data)
     setFile(null)
     setTitle('')
     setDescription('')
+     setUploadedBy('')
+  }catch (error){
+  console.error('Error uploading file:', error)
+    }
   }
 
   return (
@@ -382,6 +409,17 @@ function UploadNotesDialog({ subjectId, subjectName }) {
             />
           </div>
         </div>
+        <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="uploadedBy" className="text-right">
+              Uploaded By
+            </Label>
+            <Input
+              id="uploadedBy"
+              value={uploadedBy}
+              onChange={(e) => setUploadedBy(e.target.value)}
+              className="col-span-3"
+            />
+          </div>
         <DialogFooter>
           <Button type="submit" onClick={handleUpload} disabled={!file || !title}>
             Upload
@@ -397,18 +435,40 @@ function UploadNotesForm({ subjects }) {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [file, setFile] = useState(null)
+  const [uploadedBy, setUploadedBy] = useState('') 
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0])
   }
 
-  const handleUpload = () => {
-    // Add logic to upload the file
-    console.log(`Uploading file for subject ${selectedSubject}:`, { file, title, description })
-    setSelectedSubject('')
-    setTitle('')
-    setDescription('')
-    setFile(null)
+   const handleUpload = async () => {
+    if (!file || !title || !description || !uploadedBy) {
+      console.error('All fields are required')
+      return
+    }
+    const formData = new FormData()
+    formData.append('SubjectId', subjectId)
+    formData.append('Title', title)
+    formData.append('Description', description)
+    formData.append('ContentType', file.type)
+    formData.append('Content', file)
+    formData.append('UploadedBy', uploadedBy)
+
+    try {
+      const response = await axiosInstance.post('/api/v1/material/add', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+      console.log('Upload successful:', response.data)
+      // Reset form fields
+      setFile(null)
+      setTitle('')
+      setDescription('')
+      setUploadedBy('')
+    } catch (error) {
+      console.error('Error uploading file:', error)
+    }
   }
 
   return (
@@ -443,6 +503,11 @@ function UploadNotesForm({ subjects }) {
         <Input
           type="file"
           onChange={handleFileChange}
+        />
+         <Input
+          placeholder="Uploaded By"
+          value={uploadedBy}
+          onChange={(e) => setUploadedBy(e.target.value)}
         />
       </CardContent>
       <CardFooter>

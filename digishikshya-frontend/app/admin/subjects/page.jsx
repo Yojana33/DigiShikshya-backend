@@ -24,6 +24,11 @@ const fetchBatches = async () => {
   return response.data.items;
 };
 
+const fetchCourses = async () => {
+  const response = await axiosInstance.get('/api/v1/course/all');
+  return response.data.items;
+};
+
 const fetchSemesters = async () => {
   const response = await axiosInstance.get('/api/v1/semester/all');
   return response.data.items;
@@ -37,13 +42,13 @@ const addSubject = async (subject) => {
 
 // Updating an existing subject
 const updateSubject = async (subject) => {
-  const response = await axiosInstance.patch(`/api/v1/subject/update`, subject);
+  const response = await axiosInstance.patch('/api/v1/subject/update', subject);
   return response.data;
 };
 
 // Deleting a subject
 const deleteSubject = async (subjectId) => {
-  const response = await axiosInstance.delete(`/api/v1/subject/delete`, {
+  const response = await axiosInstance.delete('/api/v1/subject/delete', {
     data: { id: subjectId }
   });
   return response.data;
@@ -65,6 +70,7 @@ export default function SubjectsPage() {
   );
 
   const { data: batches } = useQuery(['batches'], fetchBatches);
+  const { data: courses } = useQuery(['courses'], fetchCourses);
   const { data: semesters } = useQuery(['semesters'], fetchSemesters);
 
   // Mutations for adding, updating, and deleting subjects
@@ -134,12 +140,14 @@ export default function SubjectsPage() {
           <CreateSubjectForm 
             onCreateSubject={handleCreateSubject} 
             batches={batches} 
+            courses={courses} 
             semesters={semesters} 
           />
         </TabsContent>
         <TabsContent value="view">
           <SubjectList 
             subjects={subjects} 
+            courses={courses}
             semesters={semesters}
             onEdit={setEditingSubject} 
             onDelete={handleDeleteSubject} 
@@ -160,6 +168,7 @@ export default function SubjectsPage() {
               subject={editingSubject} 
               onSave={handleEditSubject} 
               batches={batches} 
+              courses={courses} 
               semesters={semesters} 
             />
           )}
@@ -169,23 +178,19 @@ export default function SubjectsPage() {
   );
 }
 
-function CreateSubjectForm({ onCreateSubject, batches, semesters }) {
-  const [subjectName, setName] = useState('');
-  const [subjectCode, setSubjectcode] = useState('');
-  const [subjectDescription, setDescription] = useState('');
-  const [creditHour, setCredithour] = useState('');
+function CreateSubjectForm({ onCreateSubject, batches, courses, semesters }) {
+  const [name, setName] = useState('');
   const [selectedBatch, setSelectedBatch] = useState('');
+  const [selectedCourse, setSelectedCourse] = useState('');
   const [selectedSemester, setSelectedSemester] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onCreateSubject({ subjectName, batchId: selectedBatch, semesterId: selectedSemester, subjectCode, subjectDescription, creditHour });
+    onCreateSubject({ name, batchId: selectedBatch, courseId: selectedCourse, semesterId: selectedSemester });
     setName('');
     setSelectedBatch('');
+    setSelectedCourse('');
     setSelectedSemester('');
-    setSubjectcode('');
-    setDescription('');
-    setCredithour('');
   };
 
   return (
@@ -197,50 +202,23 @@ function CreateSubjectForm({ onCreateSubject, batches, semesters }) {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Subject Name</Label> 
+            {/* <Label htmlFor="name">Subject Name</Label> */}
             <Input 
               id="name" 
-              value={subjectName} 
+              value={name} 
               onChange={(e) => setName(e.target.value)} 
               required 
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="subjectcode">Subject Code</Label>
-            <Input
-              id="subjectcode"
-              value={subjectCode}
-              onChange={(e) => setSubjectcode(e.target.value)}
-              required
-            />
-          </div>
-          <div className="space-y-2"> 
-            <Label htmlFor="description">Description</Label>
-            <Input
-              id="description"
-              value={subjectDescription}
-              onChange={(e) => setDescription(e.target.value)}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="credithour">Credit Hour</Label>
-            <Input
-              id="credithour"
-              value={creditHour}
-              onChange={(e) => setCredithour(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="batch">Select Batch</Label>
+            {/* <Label htmlFor="batch">Select Batch</Label> */}
             <select
               id="batch"
               value={selectedBatch}
               onChange={(e) => setSelectedBatch(e.target.value)}
               required
             >
+              {console.log(batches)}
               <option value="">Select Batch</option>
               {batches?.map((batch) => (
                 <option key={batch.id} value={batch.id}>{batch.batchName}</option>
@@ -248,7 +226,21 @@ function CreateSubjectForm({ onCreateSubject, batches, semesters }) {
             </select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="semester">Select Semester</Label>
+            {/* <Label htmlFor="course">Select Course</Label> */}
+            <select
+              id="course"
+              value={selectedCourse}
+              onChange={(e) => setSelectedCourse(e.target.value)}
+              required
+            >
+              <option value="">Select Course</option>
+              {courses.map((course) => (
+                <option key={course.id} value={course.id}>{course.name}</option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-2">
+            {/* <Label htmlFor="semester">Select Semester</Label> */}
             <select
               id="semester"
               value={selectedSemester}
@@ -268,17 +260,15 @@ function CreateSubjectForm({ onCreateSubject, batches, semesters }) {
   );
 }
 
-function EditSubjectForm({ subject, onSave, batches, semesters }) {
-  const [name, setName] = useState(subject.subjectName);
+function EditSubjectForm({ subject, onSave, batches, courses, semesters }) {
+  const [name, setName] = useState(subject.name);
   const [selectedBatch, setSelectedBatch] = useState(subject.batchId);
-  const [subjectCode, setSubjectcode] = useState(subject.subjectCode);
-  const [description, setDescription] = useState(subject.subjectDescription);
-  const [creditHour, setCredithour] = useState(subject.creditHour);
+  const [selectedCourse, setSelectedCourse] = useState(subject.courseId);
   const [selectedSemester, setSelectedSemester] = useState(subject.semesterId);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave({ id: subject.id, subjectName: name, batchId: selectedBatch, semesterId: selectedSemester, subjectCode, subjectDescription, creditHour });
+    onSave({ id: subject.id, name, batchId: selectedBatch, courseId: selectedCourse, semesterId: selectedSemester });
   };
 
   return (
@@ -293,33 +283,6 @@ function EditSubjectForm({ subject, onSave, batches, semesters }) {
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="edit-subjectcode">Subject Code</Label>
-        <Input
-          id="edit-subjectcode"
-          value={subjectCode}
-          onChange={(e) => setSubjectcode(e.target.value)}
-          required
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="edit-description">Description</Label>
-        <Input
-          id="edit-description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          required
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="edit-credithour">Credit Hour</Label>
-        <Input
-          id="edit-credithour"
-          value={creditHour}
-          onChange={(e) => setCredithour(e.target.value)}
-          required
-        />
-      </div>
-      <div className="space-y-2">
         <Label htmlFor="edit-batch">Select Batch</Label>
         <select
           id="edit-batch"
@@ -328,7 +291,20 @@ function EditSubjectForm({ subject, onSave, batches, semesters }) {
           required
         >
           {batches.map((batch) => (
-            <option key={batch.id} value={batch.id}>{batch.batchName}</option>
+            <option key={batch.id} value={batch.id}>{batch.name}</option>
+          ))}
+        </select>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="edit-course">Select Course</Label>
+        <select
+          id="edit-course"
+          value={selectedCourse}
+          onChange={(e) => setSelectedCourse(e.target.value)}
+          required
+        >
+          {courses.map((course) => (
+            <option key={course.id} value={course.id}>{course.name}</option>
           ))}
         </select>
       </div>
@@ -341,7 +317,7 @@ function EditSubjectForm({ subject, onSave, batches, semesters }) {
           required
         >
           {semesters.map((semester) => (
-            <option key={semester.id} value={semester.id}>{semester.semesterName}</option>
+            <option key={semester.id} value={semester.id}>{semester.name}</option>
           ))}
         </select>
       </div>
@@ -359,22 +335,19 @@ function SubjectList({ subjects, onEdit, onDelete }) {
         subjects.map((subject) => (
           <Card key={subject.id} className="flex justify-between items-center p-4 border rounded-lg shadow-sm">
             <CardTitle>
-              <p className="text-lg font-medium">{subject.subjectName}</p>
+              <p className="text-lg font-medium">{subject.name}</p>
               <p className="text-lg text-black-500">
-                Subject Code: {subject.subjectCode}
-              </p>
-              <p className="text-lg text-black-500">
-                Description: {subject.subjectDescription}
-              </p>
-              <p className="text-lg text-black-500">
-                Credit Hour: {subject.creditHour}
+                Subject: {subject.subjectName}
               </p>
             </CardTitle>
             <CardContent>
               <p className="text-md text-gray-500">
+                Course: {subject.courseName}
+              </p>
+              <p className="text-md text-gray-500">
                 Semester: {subject.semesterName}
               </p>
-            </CardContent>
+              </CardContent>
             <div className="flex space-x-2">
               <Button variant="outline" size="icon" onClick={() => onEdit(subject)}>
                 <Edit className="h-4 w-4" />
@@ -388,6 +361,6 @@ function SubjectList({ subjects, onEdit, onDelete }) {
           </Card>
         ))
       )}
-    </div>
-  );
+    </div>
+  );
 }

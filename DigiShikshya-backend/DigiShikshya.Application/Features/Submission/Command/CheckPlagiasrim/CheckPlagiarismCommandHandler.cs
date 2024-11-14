@@ -50,7 +50,7 @@ public class CheckPlagiarismCommandHandler : IRequestHandler<CheckPlagiarismComm
             {
                 Id = s.Id,
                 AssignmentId = s.AssignmentId,
-                SubmittedFile = Convert.FromBase64String(s.SubmittedFile ?? string.Empty),
+                SubmittedFile = s.SubmittedFile, // Assuming SubmittedFile is already a byte[]
                 StudentId = s.StudentId
             })
             .ToList() ?? new List<Submission>();

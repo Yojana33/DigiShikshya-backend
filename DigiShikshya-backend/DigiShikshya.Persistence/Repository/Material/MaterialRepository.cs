@@ -32,7 +32,7 @@ public class MaterialRepository : IMaterialRepository
         return result > 0;
     }
 
-    public async Task<PaginatedResult<Material>> GetAllMaterials(MaterialListQuery request)
+    public async Task<PaginatedResult<MaterialListResponse>> GetAllMaterials(MaterialListQuery request)
     {
         var totalCountQuery = "SELECT COUNT(*) FROM material";
         var totalCount = await _dbConnection.ExecuteScalarAsync<int>(totalCountQuery);
@@ -60,13 +60,13 @@ public class MaterialRepository : IMaterialRepository
             ORDER BY m.created_at DESC 
             OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
-        var result = await _dbConnection.QueryAsync<Material>(query, new
+        var result = await _dbConnection.QueryAsync<MaterialListResponse>(query, new
         {
             Offset = (request.Page - 1) * request.PageSize,
             PageSize = request.PageSize
         });
 
-        return new PaginatedResult<Material>
+        return new PaginatedResult<MaterialListResponse>
         {
             Items = result.ToList(),
             Page = request.Page,

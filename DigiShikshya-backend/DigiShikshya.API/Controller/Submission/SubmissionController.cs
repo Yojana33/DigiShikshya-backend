@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
 [Route("api/v1/submission")]
-public class SubmissionController(IMediator _mediator,SubmissionService _submissionService) : ControllerBase
+public class SubmissionController(IMediator _mediator, SubmissionService _submissionService) : ControllerBase
 {
     private readonly IMediator _mediator = _mediator;
 
@@ -41,24 +41,22 @@ public class SubmissionController(IMediator _mediator,SubmissionService _submiss
             return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An unexpected error occurred. Please try again later." });
         }
     }
-    // [HttpPost("check-plagiarism")]
-    // [ProducesResponseType(StatusCodes.Status200OK)]
-    // [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    // [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    // public async Task<IActionResult> CheckPlagiarism([FromForm] CheckPlagiarismRequest request)
-    // {
-    //     try
-    //     {
-    //         var hasSimilarities = await _submissionService.CheckForSimilaritiesAsync(request.AssignmentId);
-    //         if (hasSimilarities.Count > 0)
-    //         {
-    //             return Ok(new { message = "Plagiarism detected." });
-    //         }
-    //         return Ok(new { message = "No plagiarism detected." });
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
-    //     }
-    // }
+    [HttpPost("check-plagiarism")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> CheckPlagiarism([FromForm] CheckPlagiarismCommand request)
+    {
+        try
+        {
+            var response = await _mediator.Send(request);
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
+        }
+
+    }
+
 }

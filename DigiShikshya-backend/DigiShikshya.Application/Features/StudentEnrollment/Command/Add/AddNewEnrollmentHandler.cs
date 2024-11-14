@@ -34,7 +34,7 @@ public class AddNewEnrollmentHandler : IRequestHandler<AddNewEnrollment, AddNewE
             StudentId = request.StudentId,
             BatchId = request.BatchId,
             SemesterId = request.SemesterId,
-            EnrolledDate = request.EnrolledDate
+            // EnrolledDate = request.EnrolledDate
         };
 
         // Add the new enrollment to the repository
