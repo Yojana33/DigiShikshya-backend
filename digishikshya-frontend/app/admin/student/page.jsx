@@ -310,7 +310,6 @@ function CreateStudentForm({
               <SelectContent>
                 {semesters.map((s) => (
                   <SelectItem key={s.id} value={s.id}>{s.semesterName}</SelectItem>
-                  <SelectItem key={s.id} value={s.id}>{s.semesterName}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -388,7 +387,6 @@ function EditStudentForm({ student, batches, semesters, onSave }) {
           </SelectTrigger>
           <SelectContent>
             {semesters.map((s) => (
-              <SelectItem key={s.id} value={s.id}>{s.semesterName}</SelectItem>
               <SelectItem key={s.id} value={s.id}>{s.semesterName}</SelectItem>
             ))}
           </SelectContent>
